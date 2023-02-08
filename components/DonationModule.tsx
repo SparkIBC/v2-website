@@ -1,0 +1,334 @@
+import type { Campaign } from 'types/Funding.types'
+import type { SubmitHandler } from 'react-hook-form'
+
+import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+
+import { InformationCircleIcon } from '@heroicons/react/24/outline'
+
+import Button from 'components/Button'
+import Fieldset from 'components/Fieldset'
+
+import { RadioGroup } from '@headlessui/react'
+import { classNames } from 'util/css'
+import React, { useEffect, useState } from 'react'
+import { useChain } from '@cosmos-kit/react'
+import { FundingMessageComposer } from 'types/Funding.message-composer'
+import { coin } from 'cosmwasm'
+import { useSparkClient } from 'client'
+import { useTx } from 'contexts/tx'
+
+type Theme = 'light' | 'dark' | 'midnight'
+
+interface FormValues {
+  donation: number
+}
+
+const themes = [
+  { name: 'light', bgColor: 'bg-gray-200' },
+  { name: 'dark', bgColor: 'bg-gray-700' },
+  { name: 'midnight', bgColor: 'bg-black' },
+]
+
+export interface IDonate {
+  campaign?: string // specify campaign, if none use general fund
+  amount?: number // amount to donate
+  theme?: Theme // theme to use, if none show selector
+  showAbout?: boolean // show about button
+  rounded?: boolean // is rounded?
+}
+
+export default function Donate({
+  campaign: campaignName,
+  amount,
+  theme: defaultTheme,
+  showAbout,
+  rounded,
+}: IDonate) {
+  const router = useRouter()
+  const [theme, setTheme] = useState<Theme>(defaultTheme || 'midnight')
+
+  const { client } = useSparkClient()
+
+  const [campaignData, setCampaignData] = useState<Campaign>()
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  useEffect(() => {
+    async function effect() {
+      console.log(campaignName)
+      if (campaignName) {
+        setIsLoading(true)
+        const fundingClient = client?.fundingClient
+        const campaignData = await fundingClient?.queryGetCampaign({
+          campaignName,
+        })
+        console.log(campaignData)
+        setCampaignData(campaignData?.campaign)
+        setIsLoading(false)
+      } else {
+        setCampaignData(undefined)
+      }
+    }
+    effect()
+  }, [campaignName])
+
+  const _render = () => {
+    return isLoading ? (
+      <Loading />
+    ) : (
+      <DonationModule
+        campaign={campaignData}
+        amount={amount}
+        theme={theme}
+        setTheme={setTheme}
+        rounded={rounded ?? false}
+        showAbout={showAbout ?? true}
+        showTheme={!!defaultTheme}
+      />
+    )
+  }
+
+  return (
+    <div
+      className={classNames(
+        theme === 'midnight' && 'bg-black dark',
+        theme === 'dark' && 'bg-gray-900 dark',
+        theme === 'light' && 'bg-white',
+      )}
+    >
+      {_render()}
+    </div>
+  )
+}
+
+const Loading = () => (
+  <div className="flex items-center justify-center h-full">
+    <img src="/images/Logo.svg" className="w-16 h-16 animate-spin" />
+  </div>
+)
+
+interface IDonationModule {
+  campaign?: Campaign
+  amount: any
+  theme: Theme
+  setTheme: React.Dispatch<React.SetStateAction<Theme>>
+  showAbout: boolean
+  showTheme: boolean
+  rounded: boolean
+}
+
+const DonationModule = ({
+  campaign,
+  amount,
+  theme,
+  setTheme,
+  showAbout,
+  showTheme,
+  rounded,
+}: IDonationModule) => {
+  const { handleSubmit, register } = useForm<FormValues>()
+  const {
+    openView,
+    disconnect,
+    wallet,
+    address,
+    getSigningCosmWasmClient,
+  } = useChain(process.env.NEXT_PUBLIC_NETWORK!)
+  const [isValidator, setIsValidator] = useState<boolean>(false)
+
+  const router = useRouter()
+  const { tx } = useTx()
+
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  const onSubmit: SubmitHandler<FormValues> = async ({ donation }) => {
+    const signingCosmWasmClient = await getSigningCosmWasmClient()
+
+    if (!signingCosmWasmClient || !address) return
+
+    const fundingMessageComposer = new FundingMessageComposer(
+      address,
+      process.env.NEXT_PUBLIC_FUNDING_CONTRACT!,
+    )
+
+    const msg = fundingMessageComposer.fund(
+      {
+        campaign_name: campaign?.name,
+        donor_address_type: 'Private',
+      },
+      [coin(donation * 1_000_000, process.env.NEXT_PUBLIC_CHAIN_DENOM!)],
+    )
+
+    tx([msg], {}, () => router.push('/leaderboard'))
+  }
+
+  return isLoading ? (
+    <Loading />
+  ) : (
+    <div
+      className={classNames(
+        rounded && 'rounded-b-lg',
+        'mx-auto h-full max-w-3xl',
+      )}
+    >
+      <div className="px-4 pb-8 border-t-4 border-primary">
+        <div className="flex flex-row items-center justify-between w-full px-2 pb-3 mt-4">
+          <img src="/images/Logo.svg" className="w-8 h-8" />
+          {showAbout && (
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://sparkibc.zone/about"
+              className="flex flex-row items-center space-x-2 text-sm font-medium cursor-pointer text-black/50 dark:text-white/50 hover:text-black/75 dark:hover:text-white/75"
+            >
+              <InformationCircleIcon className="w-5 h-5" />
+              <p>About SparkIBC</p>
+            </a>
+          )}
+        </div>
+        <div className="flex flex-col mt-6">
+          {showTheme && (
+            <RadioGroup
+              value={themes.find(({ name }) => name === theme)}
+              onChange={({ name }: { name: string }) => setTheme(name as Theme)}
+            >
+              <RadioGroup.Label as="span" className="sr-only">
+                Choose a theme
+              </RadioGroup.Label>
+              <div className="flex items-center mt-2 space-x-3">
+                {themes.map((theme) => (
+                  <RadioGroup.Option
+                    key={theme.name}
+                    value={theme}
+                    className={({ active, checked }) =>
+                      classNames(
+                        'ring-primary',
+                        active && checked ? 'ring ring-offset-1' : '',
+                        !active && checked ? 'ring-2' : '',
+                        '-m-0.5 relative p-0.5 rounded-full flex items-center justify-center cursor-pointer focus:outline-none',
+                      )
+                    }
+                  >
+                    <RadioGroup.Label as="span" className="sr-only">
+                      {theme.name}
+                    </RadioGroup.Label>
+                    <span
+                      aria-hidden="true"
+                      className={classNames(
+                        theme.bgColor,
+                        'h-6 w-6 border border-black dark:border-white border-opacity-25 rounded-full',
+                      )}
+                    />
+                  </RadioGroup.Option>
+                ))}
+              </div>
+            </RadioGroup>
+          )}
+          <p className="mt-6 text-xs font-semibold text-primary-500">FUND</p>
+          <p className="text-3xl font-semibold text-black dark:text-white">
+            <span className="capitalize">
+              {campaign?.name || 'General Fund'}
+            </span>
+          </p>
+          <p className="mt-3 text-sm font-medium text-black dark:text-white">
+            100% of your contribution goes towards the{' '}
+            <span className="capitalize">{campaign?.name || 'SparkIBC'}</span>{' '}
+            campaign.
+          </p>
+          <div className="flex flex-row items-center px-4 py-2.5 mt-4 text-sm font-medium text-black dark:text-white">
+            <InformationCircleIcon className="w-5 h-5 mr-3 text-black dark:text-white" />
+            <p>
+              SparkIBC only supports axlUSDC.{' '}
+              <a
+                href="https://app.rango.exchange/swap/OSMOSIS.OSMO/JUNO.USDC--ibc%2Feac38d55372f38f1afd68df7fe9ef762dcf69f26520643cf3f9d292a738d8034/"
+                rel="noopener noreferrer"
+                target="_blank"
+                className="underline text-primary hover:text-primary/80 hover:decoration-transparent"
+              >
+                Swap
+              </a>
+            </p>
+          </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="mt-3">
+            <Fieldset id="donation">
+              <div className="relative rounded-md shadow-sm">
+                <input
+                  className={classNames(
+                    theme === 'midnight' && 'bg-black text-white',
+                    theme === 'dark' && 'bg-gray-900 text-white',
+                    theme === 'light' && 'bg-white text-black',
+                    'block w-full font-semibold h-14 pl-6 pr-20 rounded-xl shadow-sm sm:text-base placeholder:text-black/25 dark:placeholder:text-white/25 border-black/10 dark:border-white/10',
+                  )}
+                  id="donation"
+                  type="number"
+                  placeholder="Amount to contribute..."
+                  defaultValue={amount}
+                  autoFocus
+                  {...register('donation', { required: true, min: 0 })}
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <span
+                    className="flex flex-row items-center pr-2 text-sm font-semibold text-black dark:text-white"
+                    id="donation-addon"
+                  >
+                    <img
+                      src="https://raw.githubusercontent.com/cosmos/chain-registry/master/axelar/images/uausdc%20L@3x.png"
+                      className="w-6 h-6 mr-1.5"
+                    />
+                    <p>USDC</p>
+                  </span>
+                </div>
+              </div>
+            </Fieldset>
+            {/* <div className="flex justify-end mt-3 mb-2">
+            <Switch.Group as="div" className="flex items-center">
+              <Switch
+                checked={isValidator}
+                onChange={setIsValidator}
+                className={classNames(
+                  isValidator ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-800',
+                  'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-offset-gray-900 focus:ring-offset-2',
+                )}
+              >
+                <span
+                  aria-hidden="true"
+                  className={classNames(
+                    isValidator ? 'translate-x-5' : 'translate-x-0',
+                    'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                  )}
+                />
+              </Switch>
+              <Switch.Label as="span" className="ml-3">
+                <span className="text-sm font-semibold text-black dark:text-white">
+                  Validator donation
+                </span>
+              </Switch.Label>
+            </Switch.Group>
+          </div> */}
+            <Button
+              className="inline-flex items-center justify-center w-full py-5 mt-3 rounded-full"
+              variant="primary"
+              onClick={() => {
+                if (!wallet) openView()
+              }}
+              type={wallet ? 'submit' : 'button'}
+            >
+              {wallet ? 'Contribute' : 'Connect Wallet'}
+            </Button>
+            {/* {wallet && (
+              <Button
+                className="inline-flex items-center justify-center w-full py-3 mt-3 font-semibold text-black bg-gray-200 rounded-full hover:bg-gray-300 dark:bg-white dark:hover:bg-white/80"
+                variant="primary"
+                onClick={() => {
+                  disconnect()
+                }}
+              >
+                Disconnect wallet
+              </Button>
+            )} */}
+          </form>
+        </div>
+      </div>
+    </div>
+  )
+}
