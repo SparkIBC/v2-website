@@ -14,14 +14,17 @@ import { classNames } from 'util/css'
 import React, { useEffect, useState } from 'react'
 import { useChain } from '@cosmos-kit/react'
 import { FundingMessageComposer } from 'types/Funding.message-composer'
-import { coin } from 'cosmwasm'
+import { coin, fromBech32 } from 'cosmwasm'
 import { useSparkClient } from 'client'
 import { useTx } from 'contexts/tx'
+import { XMarkIcon } from '@heroicons/react/20/solid'
+import useToaster, { ToastTypes } from 'hooks/useToaster'
 
 type Theme = 'light' | 'dark' | 'midnight'
 
 interface FormValues {
   donation: number
+  on_behalf_of?: string
 }
 
 const themes = [
@@ -138,25 +141,45 @@ const DonationModule = ({
 
   const router = useRouter()
   const { tx } = useTx()
+  const toaster = useToaster()
 
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isLoading, _] = useState<boolean>(false)
+  const [isOnBehalf, setIsOnBehalf] = useState<boolean>(false)
 
-  const onSubmit: SubmitHandler<FormValues> = async ({ donation }) => {
+  const onSubmit: SubmitHandler<FormValues> = async ({
+    donation,
+    on_behalf_of,
+  }) => {
     const signingCosmWasmClient = await getSigningCosmWasmClient()
 
     if (!signingCosmWasmClient || !address) return
 
     const fundingMessageComposer = new FundingMessageComposer(
       address,
-      process.env.NEXT_PUBLIC_FUNDING_CONTRACT!,
+      process.env.NEXT_PUBLIC_FUNDING_CONTRACT_ADDRESS!,
     )
+
+    const on_behalf_of_address = isOnBehalf ? on_behalf_of : undefined
+
+    if (!!on_behalf_of_address)
+      try {
+        fromBech32(on_behalf_of_address)
+      } catch {
+        return toaster.toast({
+          title: 'Error',
+          dismissable: true,
+          message: 'Invalid address',
+          type: ToastTypes.Error,
+        })
+      }
 
     const msg = fundingMessageComposer.fund(
       {
         campaign_name: campaign?.name,
         donor_address_type: 'Private',
+        on_behalf_of,
       },
-      [coin(donation * 1_000_000, process.env.NEXT_PUBLIC_CHAIN_DENOM!)],
+      [coin(donation * 1_000_000, process.env.NEXT_PUBLIC_DENOM!)],
     )
 
     tx([msg], {}, () => router.push('/leaderboard'))
@@ -257,7 +280,7 @@ const DonationModule = ({
                     theme === 'midnight' && 'bg-black text-white',
                     theme === 'dark' && 'bg-gray-900 text-white',
                     theme === 'light' && 'bg-white text-black',
-                    'block w-full font-semibold h-14 pl-6 pr-20 rounded-xl shadow-sm sm:text-base placeholder:text-black/25 dark:placeholder:text-white/25 border-black/10 dark:border-white/10',
+                    'block w-full font-semibold h-14 pl-6 pr-20 rounded-xl shadow-sm sm:text-base placeholder:text-black/25 dark:placeholder:text-white/25 border-black/10 dark:border-white/25',
                   )}
                   id="donation"
                   type="number"
@@ -279,6 +302,41 @@ const DonationModule = ({
                   </span>
                 </div>
               </div>
+            </Fieldset>
+            <Fieldset id="on_behalf_of">
+              {isOnBehalf ? (
+                <div className="flex flex-row items-center mt-3">
+                  <div className="relative w-full rounded-md shadow-sm">
+                    <input
+                      className={classNames(
+                        theme === 'midnight' && 'bg-black text-white',
+                        theme === 'dark' && 'bg-gray-900 text-white',
+                        theme === 'light' && 'bg-white text-black',
+                        'block w-full font-semibold placeholder:text-sm h-10 pl-6 pr-20 rounded-xl shadow-sm sm:text-base placeholder:text-black/25 dark:placeholder:text-white/25 border-black/10 dark:border-white/25',
+                      )}
+                      id="on_behalf_of"
+                      type="text"
+                      placeholder="Address to contribute on behalf of..."
+                      autoFocus
+                      {...register('on_behalf_of', { required: true })}
+                    />
+                  </div>
+                  <a
+                    className="px-2 cursor-pointer"
+                    onClick={() => setIsOnBehalf(false)}
+                  >
+                    <XMarkIcon className="w-5 h-5 text-primary hover:text-primary/80" />
+                  </a>
+                </div>
+              ) : (
+                <Button
+                  className="inline-flex items-center justify-center w-full h-10 py-3 mt-3 font-semibold text-black bg-gray-200 rounded-full hover:bg-gray-300 dark:bg-white dark:hover:bg-white/80"
+                  variant="primary"
+                  onClick={() => setIsOnBehalf(true)}
+                >
+                  Donate on behalf of someone else
+                </Button>
+              )}
             </Fieldset>
             {/* <div className="flex justify-end mt-3 mb-2">
             <Switch.Group as="div" className="flex items-center">

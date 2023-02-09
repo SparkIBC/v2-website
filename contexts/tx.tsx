@@ -5,6 +5,8 @@ import { coins } from '@cosmjs/stargate'
 import { ArrowTopRightOnSquareIcon as LinkIcon } from '@heroicons/react/24/outline'
 import useToaster, { ToastPayload, ToastTypes } from 'hooks/useToaster'
 import { useSparkClient, useWallet } from 'client'
+import { useChain } from '@cosmos-kit/react'
+import { SigningCosmWasmClient } from 'cosmwasm'
 
 // Context to handle simple signingClient transactions
 export interface Msg {
@@ -34,7 +36,7 @@ export const Tx = createContext<TxContext>({
 export function TxProvider({ children }: { children: ReactNode }) {
   const { wallet, refreshBalance } = useWallet()
   const { client } = useSparkClient()
-  const signingCosmwasmClient = client?.signingCosmWasmClient
+  const signingCosmWasmClient = client?.signingCosmWasmClient
 
   const toaster = useToaster()
 
@@ -52,7 +54,7 @@ export function TxProvider({ children }: { children: ReactNode }) {
     let signed
     try {
       if (wallet?.address) {
-        signed = await signingCosmwasmClient?.sign(
+        signed = await signingCosmWasmClient?.sign(
           wallet?.address,
           msgs,
           fee,
@@ -78,8 +80,8 @@ export function TxProvider({ children }: { children: ReactNode }) {
       { duration: 999999 },
     )
 
-    if (signingCosmwasmClient && signed) {
-      await signingCosmwasmClient
+    if (signingCosmWasmClient && signed) {
+      await signingCosmWasmClient
         .broadcastTx(Uint8Array.from(TxRaw.encode(signed).finish()))
         .then((res) => {
           toaster.dismiss(broadcastToastId)
@@ -99,7 +101,7 @@ export function TxProvider({ children }: { children: ReactNode }) {
                 <>
                   View{' '}
                   <a
-                    href={`${process.env.NEXT_PUBLIC_BLOCK_EXPLORER!}/txs/${
+                    href={`${process.env.NEXT_PUBLIC_EXPLORER!}/tx/${
                       res.transactionHash
                     }`}
                     rel="noopener noreferrer"
