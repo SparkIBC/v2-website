@@ -5,12 +5,14 @@ module.exports = {
     './pages/**/*.{js,ts,jsx,tsx}',
     './components/**/*.{js,ts,jsx,tsx}',
     './hooks/**/*.{js,ts,jsx,tsx}',
-    './contexts/**/*.{js,ts,jsx,tsx}',
+    './contexts/**/*.{js,ts,jsx,tsx}'
   ],
   theme: {
     extend: {
       colors: {
-        'red-orange': ['#C32C28', '#F5B63B'],
+        'red-orange': '#C32C28',
+        'red-bright': '#FF3D00',
+        'spark-orange-dark': '#FF891D',
         'spark-orange': '#F5B63B',
         'spark-red': '#C32C28',
         'black-fade': ['#000 01%', '#000', '#000 01%'],
@@ -28,12 +30,12 @@ module.exports = {
           600: '#F1A40C',
           700: '#C0840A',
           800: '#906407',
-          900: '#5F4205',
+          900: '#5F4205'
         },
         bg: {
           DEFAULT: '#111111',
-          light: '#181818',
-        },
+          light: '#181818'
+        }
       },
       fontFamily: {
         sans: [
@@ -48,34 +50,36 @@ module.exports = {
           'Fira Sans',
           'Droid Sans',
           'Helvetica Neue',
-          'sans-serif',
+          'sans-serif'
         ],
+        outfit: ['Outfit', 'sans-serif'],
+        chathura: ['Chathura', 'sans-serif']
       },
       animation: {
         enter: 'enter 200ms ease-out',
         'slide-in': 'slide-in 1.2s cubic-bezier(.41,.73,.51,1.02)',
-        leave: 'leave 150ms ease-in forwards',
+        leave: 'leave 150ms ease-in forwards'
       },
       keyframes: {
         enter: {
           '0%': { transform: 'scale(0.9)', opacity: 0 },
-          '100%': { transform: 'scale(1)', opacity: 1 },
+          '100%': { transform: 'scale(1)', opacity: 1 }
         },
         leave: {
           '0%': { transform: 'scale(1)', opacity: 1 },
-          '100%': { transform: 'scale(0.9)', opacity: 0 },
+          '100%': { transform: 'scale(0.9)', opacity: 0 }
         },
         'slide-in': {
           '0%': { transform: 'translateY(-100%)' },
-          '100%': { transform: 'translateY(0)' },
-        },
-      },
-    },
+          '100%': { transform: 'translateY(0)' }
+        }
+      }
+    }
   },
   plugins: [
     require('@tailwindcss/typography'),
     require('@tailwindcss/aspect-ratio'),
     require('@tailwindcss/forms'),
-    require('@tailwindcss/line-clamp'),
-  ],
-}
+    require('@tailwindcss/line-clamp')
+  ]
+};

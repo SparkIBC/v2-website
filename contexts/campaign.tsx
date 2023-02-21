@@ -1,19 +1,18 @@
 import { createContext, ReactNode, useContext, useState } from 'react'
-import { Campaign as CampaignType } from 'campaigns'
+import campaigns, { Campaign as CampaignType } from 'campaigns'
 
 export interface CampaignContext {
-  campaign?: CampaignType
-  setCampaign: (campaign?: CampaignType) => void
+  campaign: CampaignType
+  setCampaign: (campaign: CampaignType) => void
 }
 
 export const Campaign = createContext<CampaignContext>({
-  campaign: undefined,
+  campaign: campaigns[0],
   setCampaign: () => {},
 })
 
 export function CampaignProvider({ children }: { children: ReactNode }) {
-  // undefined = general fund
-  const [campaign, setCampaign] = useState<CampaignType>()
+  const [campaign, setCampaign] = useState<CampaignType>(campaigns[0])
 
   return (
     <Campaign.Provider
