@@ -191,7 +191,7 @@ const DonationModule = ({
     <div
       className={classNames(
         rounded && 'rounded-b-lg',
-        'mx-auto h-full max-w-3xl',
+        'mx-auto h-full max-w-full',
       )}
     >
       <div className="px-4 pb-8 border-t-4 border-primary">
@@ -209,7 +209,7 @@ const DonationModule = ({
             </a>
           )}
         </div>
-        <div className="flex flex-col mt-6">
+        <div className="flex flex-col lg:mt-6">
           {showTheme && (
             <RadioGroup
               value={themes.find(({ name }) => name === theme)}
@@ -258,7 +258,7 @@ const DonationModule = ({
             <span className="capitalize">{campaign?.name || 'SparkIBC'}</span>{' '}
             campaign.
           </p>
-          <div className="flex flex-row items-center px-4 py-2.5 mt-4 text-sm font-medium text-black dark:text-white">
+          <div className="flex flex-row items-center px-4 py-2.5 text-sm font-medium text-black dark:text-white lg:mt-4">
             <InformationCircleIcon className="w-5 h-5 mr-3 text-black dark:text-white" />
             <p>
               SparkIBC only supports axlUSDC.{' '}
