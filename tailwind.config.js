@@ -17,6 +17,7 @@ module.exports = {
         'spark-red': '#C32C28',
         'black-fade': ['#000 01%', '#000', '#000 01%'],
         'spark-gray': '#181818',
+        'spark-lightergray': '#D4D4D4',
         'spark-lightgray': '#7b7b7b',
         'spark-nav': '#111111',
         primary: {
