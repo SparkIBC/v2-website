@@ -12,6 +12,7 @@ import 'animate.css';
 import 'styles/globals.css';
 import 'react-medium-image-zoom/dist/styles.css';
 import { CampaignProvider } from 'contexts/campaign';
+import { DonorProvider } from 'contexts/donor';
 
 import { MetaTags } from 'components';
 import Nav from 'components/layout/Nav';
@@ -27,24 +28,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ChakraProvider theme={defaultTheme}>
           <WalletProvider>
             <CampaignProvider>
-              <TxProvider>
-                <MetaTags
-                  title="SparkIBC"
-                  description="Be the spark for..."
-                  image=""
-                  ogImage=""
-                  url="https://sparkibc.zone"
-                />
-                <main className="w-screen min-h-screen overflow-x-hidden text-white relative bg-[length:100%_auto] bg-[url('/images/bg-mobile.png')] bg-fixed md:bg-[url('/images/bg-tablet.png')] lg:bg-[url('/images/bg-desktop.png')]">
-                  <div>
-                    <div className="flex justify-center bg-bg py-4 w-full h-20 absolute z-10 lg:hidden">
-                      <img className="h-full" src="/images/sparkibc_title_light_02.svg" alt="SparkIBC" />
+              <DonorProvider>
+                <TxProvider>
+                  <MetaTags
+                    title="SparkIBC"
+                    description="Be the spark for..."
+                    image=""
+                    ogImage=""
+                    url="https://sparkibc.zone"
+                  />
+                  <main className="w-screen min-h-screen overflow-x-hidden text-white relative bg-[length:100%_auto] bg-[url('/images/bg-mobile.png')] bg-fixed md:bg-[url('/images/bg-tablet.png')] lg:bg-[url('/images/bg-desktop.png')]">
+                    <div>
+                      <div className="flex justify-center bg-bg py-4 w-full h-20 absolute z-10 lg:hidden">
+                        <img className="h-full" src="/images/sparkibc_title_light_02.svg" alt="SparkIBC" />
+                      </div>
+                      <Nav />
+                      <div className="lg:pl-72">{children}</div>
                     </div>
-                    <Nav />
-                    <div className="lg:pl-72">{children}</div>
-                  </div>
-                </main>
-              </TxProvider>
+                  </main>
+                </TxProvider>
+              </DonorProvider>
             </CampaignProvider>
           </WalletProvider>
         </ChakraProvider>
