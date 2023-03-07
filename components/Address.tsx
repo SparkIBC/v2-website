@@ -1,9 +1,9 @@
-import React, { FunctionComponent, useState, useCallback } from "react";
-import { CheckIcon, ClipboardIcon } from "@heroicons/react/20/solid";
-import copyToClipboard from "copy-to-clipboard";
-import { classNames } from "util/css";
-import { truncateAddress } from "util/type";
-import { useWallet } from "client";
+import React, { FunctionComponent, useState, useCallback } from 'react';
+import { CheckIcon, ClipboardIcon } from '@heroicons/react/20/solid';
+import copyToClipboard from 'copy-to-clipboard';
+import { classNames } from 'util/css';
+import { truncateAddress } from 'util/type';
+import { useWallet } from 'client';
 
 interface AddressComponentType {
   address: string;
@@ -11,17 +11,12 @@ interface AddressComponentType {
   truncate?: boolean;
 }
 
-const AddressComponent: FunctionComponent<AddressComponentType> = ({
-  address,
-  copy,
-  truncate = true,
-}) => {
+const AddressComponent: FunctionComponent<AddressComponentType> = ({ address, copy, truncate = true }) => {
   const [copied, setCopied] = useState(false);
 
   const { wallet } = useWallet();
 
-  const displayAddress =
-    truncate && address ? truncateAddress(address, 8, 4) : address;
+  const displayAddress = truncate && address ? truncateAddress(address, 8, 4) : address;
 
   const handleCopy = useCallback(() => {
     copyToClipboard(address);
@@ -30,26 +25,17 @@ const AddressComponent: FunctionComponent<AddressComponentType> = ({
   }, [address]);
 
   const cachedClassNames = classNames(
-    "group",
-    "text-white",
-    address === wallet?.address && "font-bold",
-    copy && "cursor-pointer"
+    'group',
+    'text-white',
+    address === wallet?.address && 'font-bold',
+    copy && 'cursor-pointer'
   );
 
   return (
     <span className={cachedClassNames}>
-      {copy ? (
-        <span onClick={handleCopy}>{displayAddress}</span>
-      ) : address === wallet?.address ? (
-        "You"
-      ) : (
-        displayAddress
-      )}{" "}
+      {copy ? <span onClick={handleCopy}>{displayAddress}</span> : address === wallet?.address ? 'You' : displayAddress}{' '}
       {copy && (
-        <span
-          className="inline opacity-0 group-hover:opacity-25"
-          onClick={handleCopy}
-        >
+        <span className="inline opacity-0 group-hover:opacity-25" onClick={handleCopy}>
           {copied ? (
             <CheckIcon className="inline w-4 h-4 -mt-0.5" />
           ) : (

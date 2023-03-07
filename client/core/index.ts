@@ -2,6 +2,7 @@ import { CosmWasmClient, SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate
 import { WalletData } from './wallet';
 import { FundingClient, FundingQueryClient } from 'types/Funding.client';
 import { Cw20SparkClient, Cw20SparkQueryClient } from 'types/Cw20Spark.client';
+import { RPC } from 'util/constants';
 
 const getCosmWasmClientImport = import('./cosmwasm/getCosmWasmClient');
 
@@ -38,7 +39,7 @@ export class SparkClient {
 
     const getCosmWasmClient = (await getCosmWasmClientImport).default;
     // create cosmwasm client
-    this._cosmWasmClient = await getCosmWasmClient(process.env.NEXT_PUBLIC_RPC!);
+    this._cosmWasmClient = await getCosmWasmClient(RPC);
 
     this._fundingClient = new FundingQueryClient(this.cosmWasmClient, this.fundingContract);
     this._cw20Client = new Cw20SparkQueryClient(this.cosmWasmClient, this.cw20Contract);

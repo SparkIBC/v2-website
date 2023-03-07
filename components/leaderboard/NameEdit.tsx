@@ -1,8 +1,10 @@
-import { useState, useRef, Fragment } from 'react';
+import { useState, useRef, Fragment, useCallback } from 'react';
 import cx from 'classnames';
 import { Transition } from '@headlessui/react';
 
 import { useDonor } from 'contexts/donor';
+import { useNameService } from '@cosmos-kit/react';
+import { fromBech32, fromHex, toBech32, toHex } from 'cosmwasm';
 
 type OptionType = {
   value: string;
@@ -10,31 +12,52 @@ type OptionType = {
 };
 
 type OptionsType = {
-  dens: OptionType;
-  stargase: OptionType;
-  icns: OptionType;
+  // stargaze: OptionType;
+  // icns: OptionType;
   custom: OptionType;
 };
 
 const OPTIONS = {
-  dens: { value: '(de)ns username', icon: '/images/platforms/dens.png' },
-  stargase: { value: 'Stargase name', icon: '/images/platforms/stargase.png' },
-  icns: { value: 'ICNS name', icon: '/images/platforms/icns.png' },
+  // stargaze: { value: 'Stargaze', icon: '/images/platforms/stargase.png' },
+  // icns: { value: 'ICNS', icon: '/images/platforms/icns.png' },
   custom: { value: 'Custom', icon: '/images/Logo.svg' }
 };
 
 type NameEditProps = {
   isVisible?: boolean;
-  onSave: () => void;
+  onSave: (name: string) => void;
   onCancel: () => void;
 };
 
 const NameEdit = ({ isVisible = true, onSave, onCancel }: NameEditProps) => {
-  const { currentDonor, setCurrentDonor } = useDonor();
+  // const { data: sns } = useNameService('stargaze');
+  // const { data: icns } = useNameService('icns');
+
+  const { currentDonor } = useDonor();
+
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<keyof OptionsType>('custom');
-  const [donorName, setDonorName] = useState(currentDonor?.name);
+  const [donorName, setDonorName] = useState(currentDonor?.nickname);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleClick = useCallback(async () => {
+    if (currentDonor) {
+      // let name;
+      console.log(donorName);
+      switch (OPTIONS[selected].value) {
+        // case 'Stargaze':
+        //   const starsAddr = toBech32('stars', fromHex(toHex(fromBech32(currentDonor?.address).data)));
+        //   console.log(starsAddr);
+        //   name = await sns?.resolveName(starsAddr);
+        //   return onSave(name.primary_name);
+        // case 'ICNS':
+        //   name = await icns?.resolveName(currentDonor?.address);
+        //   return onSave(name.primary_name);
+        default:
+          return onSave(donorName?.trim() || currentDonor?.address);
+      }
+    }
+  }, [currentDonor, donorName]);
 
   return (
     <Transition.Root show={isVisible} as={Fragment}>
@@ -48,15 +71,15 @@ const NameEdit = ({ isVisible = true, onSave, onCancel }: NameEditProps) => {
         leaveTo="opacity-0"
       >
         <div
-          className="bg-spark-gray flex items-center w-full h-full absolute inset-0 z-50 lg:h-10 lg:top-1/2 lg:-translate-y-1/2"
+          className="absolute inset-0 z-50 flex items-center w-full h-full bg-spark-gray lg:h-10 lg:top-1/2 lg:-translate-y-1/2"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="w-full relative z-50">
+          <div className="relative z-50 w-full">
             <div className="flex px-1.5 w-full h-8">
               <input
-                className="grow border-0 bg-inherit h-full focus:ring-0 focus:border-0"
+                className="h-full border-0 grow bg-inherit focus:ring-0 focus:border-0"
                 type="text"
-                value={selected === 'custom' ? donorName : OPTIONS[selected].value}
+                value={selected === 'custom' ? donorName || '' : OPTIONS[selected]}
                 readOnly={selected !== 'custom'}
                 onChange={(e) => setDonorName(e.target.value)}
                 ref={inputRef}
@@ -95,19 +118,13 @@ const NameEdit = ({ isVisible = true, onSave, onCancel }: NameEditProps) => {
           </div>
           <div className="flex gap-1.5 rounded-b bg-[#3C3C3C] justify-center px-2.5 py-2 w-full absolute bottom-0 translate-y-full">
             <button
-              className="bg-spark-orange basis-0 grow font-medium text-spark-gray rounded h-8 md:w-32 md:basis-auto md:grow-0"
-              onClick={() => {
-                if (currentDonor) {
-                  const name = selected === 'custom' && donorName ? donorName.trim() : OPTIONS[selected].value;
-                  setCurrentDonor({ ...currentDonor, name });
-                }
-                onSave();
-              }}
+              className="h-8 font-medium rounded bg-spark-orange basis-0 grow text-spark-gray md:w-32 md:basis-auto md:grow-0"
+              onClick={handleClick}
             >
               Apply
             </button>
             <button
-              className="bg-spark-gray basis-0 grow font-medium text-white rounded h-8 md:w-32 md:basis-auto md:grow-0"
+              className="h-8 font-medium text-white rounded bg-spark-gray basis-0 grow md:w-32 md:basis-auto md:grow-0"
               onClick={onCancel}
             >
               Cancel
