@@ -65,7 +65,7 @@ const Nav = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const renderNav = () => (
-    <div className="flex flex-col bg-bg px-6 w-full h-full">
+    <div className="flex flex-col bg-bg/40 backdrop-blur px-6 w-full h-full lg:bg-bg">
       <div className="flex items-center justify-center w-full h-20">
         <img className="w-40 max-w-full" src="/images/sparkibc_title_light_02.svg" alt="SparkIBC" />
       </div>
@@ -101,40 +101,9 @@ const Nav = () => {
       </div>
       {/*  MOBILE NAV*/}
       <Transition.Root show={isSidebarOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-40 lg:hidden" onClose={setIsSidebarOpen}>
+        <Dialog as="div" className="relative z-40 lg:hidden" onClose={() => {}}>
           {/* Overlay */}
-          <Transition.Child
-            as={Fragment}
-            enter="transition-opacity ease-linear duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="transition-opacity ease-linear duration-300"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="bg-bg/50 backdrop-blur-sm fixed inset-0 " />
-          </Transition.Child>
-
-          {/* Close button */}
-          <Transition.Child
-            as={Fragment}
-            enter="ease-in-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in-out duration-300"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed top-4 left-4 z-40 md:right-4 md:left-auto md:-translate-x-56">
-              <button
-                className="flex justify-center items-center border border-spark-orange rounded-lg w-12 h-12"
-                onClick={() => setIsSidebarOpen(false)}
-              >
-                <img src="/images/icon_close.svg" alt="X" />
-              </button>
-            </div>
-          </Transition.Child>
-
+          <div className="bg-transparent fixed inset-0 " onClick={() => setIsSidebarOpen(false)} />
           {/* Nav items */}
           <div className="fixed right-0 top-0 bottom-0 z-40 flex">
             <Transition.Child
@@ -152,10 +121,10 @@ const Nav = () => {
         </Dialog>
       </Transition.Root>
       <button
-        className="flex items-center justify-center border border-spark-orange rounded-lg w-12 h-12 fixed bottom-4 right-4 z-30 lg:hidden"
-        onClick={() => setIsSidebarOpen(true)}
+        className="flex items-center justify-center bg-bg border border-spark-orange rounded-lg w-12 h-12 fixed bottom-4 right-4 z-50 lg:hidden"
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
       >
-        <img src="/images/menu.svg" alt="open menu" />
+        <img src={isSidebarOpen ? '/images/icon_close.svg' : '/images/menu.svg'} alt="open menu" />
       </button>
     </div>
   );
