@@ -30,5 +30,6 @@ export interface ContractTopTokenHolder {
 export enum AddressType {
   Private = 'Private',
   Validator = 'Validator',
+  Organization = 'Organization',
   All = 'All'
 }

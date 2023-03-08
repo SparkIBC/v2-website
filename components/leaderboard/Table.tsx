@@ -7,7 +7,6 @@ import { useDonor } from 'contexts/donor';
 import NameEdit from 'components/leaderboard/NameEdit';
 import { IDonor } from 'types';
 import Loader from 'components/Loader';
-import { useChain, useNameService } from '@cosmos-kit/react';
 import { useTx } from 'contexts/tx';
 import { FundingMessageComposer } from 'types/Funding.message-composer';
 import { CONTRACT_ADDRESS } from 'util/constants';
