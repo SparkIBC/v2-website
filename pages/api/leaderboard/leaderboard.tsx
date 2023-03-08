@@ -21,7 +21,7 @@ export async function getLeaderboardData(type: AddressType, walletAddress?: stri
   if (type === AddressType.All) {
     const topTokenHoldersList_Private = await getTopTokenHolders(AddressType.Private);
     // define donor list to return
-    const topTokenHolders_Private: IDonor[] = await (
+    const topTokenHolders_Private: IDonor[] = (
       await Promise.all(topTokenHoldersList_Private.map(async ({ addr }) => await getDonor(addr)))
     )
       .filter(Boolean)
@@ -29,13 +29,21 @@ export async function getLeaderboardData(type: AddressType, walletAddress?: stri
 
     const topTokenHoldersList_Validator = await getTopTokenHolders(AddressType.Validator);
     // define donor list to return
-    const topTokenHolders_Validator: IDonor[] = await (
+    const topTokenHolders_Validator: IDonor[] = (
       await Promise.all(topTokenHoldersList_Validator.map(async ({ addr }) => await getDonor(addr)))
     )
       .filter(Boolean)
       .map((donor) => contractDonorToIDonor(donor!));
 
-    topTokenHolders = [...topTokenHolders_Private, ...topTokenHolders_Validator].sort(
+    const topTokenHoldersList_Organization = await getTopTokenHolders(AddressType.Organization);
+    // define donor list to return
+    const topTokenHolders_Organization: IDonor[] = (
+      await Promise.all(topTokenHoldersList_Organization.map(async ({ addr }) => await getDonor(addr)))
+    )
+      .filter(Boolean)
+      .map((donor) => contractDonorToIDonor(donor!));
+
+    topTokenHolders = [...topTokenHolders_Private, ...topTokenHolders_Validator, ...topTokenHolders_Organization].sort(
       (a, b) => b.totalSparkPoints - a.totalSparkPoints
     );
   } else {

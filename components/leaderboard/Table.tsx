@@ -10,6 +10,7 @@ import Loader from 'components/Loader';
 import { useTx } from 'contexts/tx';
 import { FundingMessageComposer } from 'types/Funding.message-composer';
 import { CONTRACT_ADDRESS } from 'util/constants';
+import InfoEdit from './InfoEdit';
 
 const formatDonorField = (donor: IDonor, field: string, isExpanded = false) => {
   const { nickname, address, validatorLink } = donor;
@@ -19,7 +20,7 @@ const formatDonorField = (donor: IDonor, field: string, isExpanded = false) => {
     case 'name':
       const nameContent =
         nickname || `${address.substring(0, 13)}...${address.substring(address.length - 13, address.length)}`;
-      return <div className="overflow-hidden whitespace-nowrap text-ellipsis">{nameContent}</div>;
+      return <p className="w-full overflow-hidden text-center whitespace-nowrap text-ellipsis">{nameContent}</p>;
     case 'sparkPoints':
       return (
         <div className="flex justify-between w-full gap-2 text-sm md:gap-4 md:text-base lg:justify-center">
@@ -48,7 +49,7 @@ const formatDonorField = (donor: IDonor, field: string, isExpanded = false) => {
         </div>
       );
     case 'info':
-      return (
+      return validatorLink?.url !== '' && validatorLink?.url !== '#' ? (
         <>
           <a
             href={validatorLink?.url}
@@ -72,6 +73,25 @@ const formatDonorField = (donor: IDonor, field: string, isExpanded = false) => {
           >
             {validatorLink?.label}
           </a>
+        </>
+      ) : (
+        <>
+          <p
+            className={cx(
+              'text-xs md:text-base text-center w-full transition-all duration-300',
+              isExpanded ? 'opacity-100 max-h-full' : 'opacity-0 max-h-0'
+            )}
+          >
+            {validatorLink?.label}
+          </p>
+          <p
+            className={cx(
+              'hidden text-center whitespace-nowrap text-ellipsis overflow-hidden px-2.5 absolute w-full transition-all duration-300 lg:block',
+              isExpanded ? 'opacity-0 invisible' : 'opacity-100 visible'
+            )}
+          >
+            {validatorLink?.label}
+          </p>
         </>
       );
     default: // do nothing
@@ -145,12 +165,13 @@ const Table = () => {
   );
   const [isCurrentExpanded, setIsCurrentExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingInfo, setIsEditingInfo] = useState(false);
 
   const renderCurrentDonorColumn = (column: Column<IDonor>) => {
     if (currentDonor) {
       if (column.id === 'name') {
         return (
-          <>
+          <div className="flex items-center justify-center w-full h-full">
             {formatDonorField(currentDonor, column.id, isCurrentExpanded)}
             <button
               className={cx('shrink-0 ml-auto', { hidden: !isCurrentExpanded })}
@@ -180,12 +201,45 @@ const Table = () => {
               }}
               onCancel={() => setIsEditing(false)}
             />
-          </>
+          </div>
         );
-      } else if (column.id === 'info' && isCurrentExpanded && currentDonor?.totalSparkPoints < 50) {
+      } else if (column.id === 'info' && isCurrentExpanded && currentDonor?.totalSparkPoints >= 1) {
         return (
           <div className="flex items-center justify-center w-full h-full">
-            <img src="/images/icon_lock.svg" alt="locked" />
+            {formatDonorField(currentDonor, column.id, isCurrentExpanded)}
+            <button
+              className={cx('shrink-0', { hidden: !isCurrentExpanded })}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditingInfo(true);
+              }}
+            >
+              <img className="w-[24px]" src="/images/icon_user_edit.svg" alt="edit" />
+            </button>
+            <InfoEdit
+              isVisible={isEditingInfo}
+              onSave={(label) => {
+                const fundingMsgComposer = new FundingMessageComposer(currentDonor?.address, CONTRACT_ADDRESS);
+                const msg = fundingMsgComposer.updateValidatorLink({
+                  validatorLink: {
+                    url: '#',
+                    label
+                  }
+                });
+                tx(
+                  [msg],
+                  {
+                    toast: {
+                      title: 'Info changed!'
+                    }
+                  },
+                  () => {
+                    setIsEditingInfo(false);
+                  }
+                );
+              }}
+              onCancel={() => setIsEditingInfo(false)}
+            />
           </div>
         );
       } else if (column.id === 'rank') {
@@ -244,7 +298,7 @@ const Table = () => {
                 <div
                   key={col.id}
                   className={cx(
-                    `flex items-center boder-r-0 md:border-r border-spark-gray last:border-r-0 relative`,
+                    `flex items-center justify-center boder-r-0 md:border-r border-spark-gray last:border-r-0 relative`,
                     isCurrentExpanded
                       ? COLUMN_EXPANDED_STYLES[col.id as keyof IDonor]
                       : COLUMN_STYLES[col.id as keyof IDonor],
@@ -289,7 +343,7 @@ const Table = () => {
                         {...cell.getCellProps()}
                         key={cell.column.id}
                         className={cx(
-                          `flex items-center boder-r-0 md:border-r border-spark-gray last:border-r-0 relative`,
+                          `flex items-center justify-center boder-r-0 md:border-r border-spark-gray last:border-r-0 relative`,
                           row.isExpanded
                             ? COLUMN_EXPANDED_STYLES[cell.column.id as keyof IDonor]
                             : COLUMN_STYLES[cell.column.id as keyof IDonor],

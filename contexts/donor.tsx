@@ -34,10 +34,12 @@ export function DonorProvider({ children }: { children: ReactNode }) {
     setDonors([]);
     setCurrentDonor(undefined);
 
+    console.log('Loading leaderboard...');
+
     fetch(`/api/leaderboard?type=${donorType}` + (client?.wallet?.address ? `&address=${client?.wallet.address}` : ''))
       .then((res) => res.json())
       .then((json: { topTokenHolders: IDonor[]; currentDonor: IDonor | undefined }) => {
-        console.log(json);
+        console.log('Loaded leaderboard!');
         setDonors(json.topTokenHolders.map((donor, i) => convertToIDonor(i + 1, donor)));
         setCurrentDonor(json.currentDonor ? convertToIDonor(NaN, json.currentDonor) : undefined);
       });

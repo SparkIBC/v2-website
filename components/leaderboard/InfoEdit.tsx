@@ -18,26 +18,21 @@ type OptionsType = {
 };
 
 const OPTIONS = {
-  // stargaze: { value: 'Stargaze', icon: '/images/platforms/stargase.png' },
-  // icns: { value: 'ICNS', icon: '/images/platforms/icns.png' },
   custom: { value: 'Custom', icon: '/images/Logo.svg' }
 };
 
-type NameEditProps = {
+type InfoEditProps = {
   isVisible?: boolean;
   onSave: (name: string) => void;
   onCancel: () => void;
 };
 
-const NameEdit = ({ isVisible = true, onSave, onCancel }: NameEditProps) => {
-  // const { data: sns } = useNameService('stargaze');
-  // const { data: icns } = useNameService('icns');
-
+const InfoEdit = ({ isVisible = true, onSave, onCancel }: InfoEditProps) => {
   const { currentDonor } = useDonor();
 
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState<keyof OptionsType>('custom');
-  const [donorName, setDonorName] = useState(currentDonor?.nickname);
+  const [donorLabel, setDonorLabel] = useState(currentDonor?.validatorLink?.label);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = useCallback(async () => {
@@ -53,10 +48,10 @@ const NameEdit = ({ isVisible = true, onSave, onCancel }: NameEditProps) => {
         //   name = await icns?.resolveName(currentDonor?.address);
         //   return onSave(name.primary_name);
         default:
-          return onSave(donorName?.trim() || currentDonor?.address);
+          return onSave(donorLabel?.trim() || '');
       }
     }
-  }, [currentDonor, donorName]);
+  }, [currentDonor, donorLabel]);
 
   return (
     <Transition.Root show={isVisible} as={Fragment}>
@@ -78,9 +73,9 @@ const NameEdit = ({ isVisible = true, onSave, onCancel }: NameEditProps) => {
               <input
                 className="h-full border-0 grow bg-inherit focus:ring-0 focus:border-0"
                 type="text"
-                value={selected === 'custom' ? donorName || '' : OPTIONS[selected]}
+                value={selected === 'custom' ? donorLabel || '' : OPTIONS[selected]}
                 readOnly={selected !== 'custom'}
-                onChange={(e) => setDonorName(e.target.value)}
+                onChange={(e) => setDonorLabel(e.target.value)}
                 ref={inputRef}
               />
               <button className="flex items-center gap-1.5 ml-1.5" onClick={() => setIsOpen(!isOpen)}>
@@ -135,4 +130,4 @@ const NameEdit = ({ isVisible = true, onSave, onCancel }: NameEditProps) => {
   );
 };
 
-export default NameEdit;
+export default InfoEdit;

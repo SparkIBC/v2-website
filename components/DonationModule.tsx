@@ -1,86 +1,61 @@
-import type { Campaign } from 'types/Funding.types'
-import type { SubmitHandler } from 'react-hook-form'
+import type { Campaign } from 'types/Funding.types';
+import type { SubmitHandler } from 'react-hook-form';
 
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
 
-import { InformationCircleIcon } from '@heroicons/react/24/outline'
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
 
-import Button from 'components/Button'
-import Fieldset from 'components/Fieldset'
+import Button from 'components/Button';
+import Fieldset from 'components/Fieldset';
 
-import { RadioGroup } from '@headlessui/react'
-import { classNames } from 'util/css'
-import React, { useEffect, useState } from 'react'
-import { useChain } from '@cosmos-kit/react'
-import { FundingMessageComposer } from 'types/Funding.message-composer'
-import { coin, fromBech32 } from 'cosmwasm'
-import { useSparkClient } from 'client'
-import { useTx } from 'contexts/tx'
-import { XMarkIcon } from '@heroicons/react/20/solid'
-import useToaster, { ToastTypes } from 'hooks/useToaster'
+import { RadioGroup } from '@headlessui/react';
+import { classNames } from 'util/css';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useChain } from '@cosmos-kit/react';
+import { FundingMessageComposer } from 'types/Funding.message-composer';
+import { coin, fromBech32 } from 'cosmwasm';
+import { useSparkClient } from 'client';
+import { useTx } from 'contexts/tx';
+import { XMarkIcon } from '@heroicons/react/20/solid';
+import useToaster, { ToastTypes } from 'hooks/useToaster';
+import { useCampaign } from 'contexts/campaign';
 
-type Theme = 'light' | 'dark' | 'midnight'
+type Theme = 'light' | 'dark' | 'midnight';
 
 interface FormValues {
-  donation: number
-  on_behalf_of?: string
+  donation: number;
+  on_behalf_of?: string;
 }
 
 const themes = [
   { name: 'light', bgColor: 'bg-gray-200' },
   { name: 'dark', bgColor: 'bg-gray-700' },
-  { name: 'midnight', bgColor: 'bg-black' },
-]
+  { name: 'midnight', bgColor: 'bg-black' }
+];
 
 export interface IDonate {
-  campaign?: string // specify campaign, if none use general fund
-  amount?: number // amount to donate
-  theme?: Theme // theme to use, if none show selector
-  showAbout?: boolean // show about button
-  rounded?: boolean // is rounded?
+  amount?: number; // amount to donate
+  theme?: Theme; // theme to use, if none show selector
+  showAbout?: boolean; // show about button
+  rounded?: boolean; // is rounded?
 }
 
-export default function Donate({
-  campaign: campaignName,
-  amount,
-  theme: defaultTheme,
-  showAbout,
-  rounded,
-}: IDonate) {
-  const router = useRouter()
-  const [theme, setTheme] = useState<Theme>(defaultTheme || 'midnight')
+export default function Donate({ amount, theme: defaultTheme, showAbout, rounded }: IDonate) {
+  const [theme, setTheme] = useState<Theme>(defaultTheme || 'midnight');
 
-  const { client } = useSparkClient()
+  const { campaign } = useCampaign();
+  const { client } = useSparkClient();
 
-  const [campaignData, setCampaignData] = useState<Campaign>()
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [campaignData, setCampaignData] = useState<Campaign>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    async function effect() {
-      console.log(campaignName)
-      if (campaignName) {
-        setIsLoading(true)
-        const fundingClient = client?.fundingClient
-        const campaignData = await fundingClient?.queryGetCampaign({
-          campaignName,
-        })
-        console.log(campaignData)
-        setCampaignData(campaignData?.campaign)
-        setIsLoading(false)
-      } else {
-        setCampaignData(undefined)
-      }
-    }
-    effect()
-  }, [campaignName])
-
-  const _render = () => {
+  const _render = useMemo(() => {
     return isLoading ? (
       <Loading />
     ) : (
       <DonationModule
-        campaign={campaignData}
+        campaignName={campaign.name === 'General Fund' ? undefined : campaign.name}
         amount={amount}
         theme={theme}
         setTheme={setTheme}
@@ -88,112 +63,103 @@ export default function Donate({
         showAbout={showAbout ?? true}
         showTheme={!!defaultTheme}
       />
-    )
-  }
+    );
+  }, [campaign, amount, theme, setTheme, rounded, showAbout, defaultTheme]);
 
   return (
     <div
       className={classNames(
         theme === 'midnight' && 'bg-black dark',
         theme === 'dark' && 'bg-gray-900 dark',
-        theme === 'light' && 'bg-white',
+        theme === 'light' && 'bg-white'
       )}
     >
-      {_render()}
+      {_render}
     </div>
-  )
+  );
 }
 
 const Loading = () => (
   <div className="flex items-center justify-center h-full">
     <img src="/images/Logo.svg" className="w-16 h-16 animate-spin" />
   </div>
-)
+);
 
 interface IDonationModule {
-  campaign?: Campaign
-  amount: any
-  theme: Theme
-  setTheme: React.Dispatch<React.SetStateAction<Theme>>
-  showAbout: boolean
-  showTheme: boolean
-  rounded: boolean
+  campaignName?: string;
+  amount: any;
+  theme: Theme;
+  setTheme: React.Dispatch<React.SetStateAction<Theme>>;
+  showAbout: boolean;
+  showTheme: boolean;
+  rounded: boolean;
 }
 
-const DonationModule = ({
-  campaign,
-  amount,
-  theme,
-  setTheme,
-  showAbout,
-  showTheme,
-  rounded,
-}: IDonationModule) => {
-  const { handleSubmit, register } = useForm<FormValues>()
-  const {
-    openView,
-    disconnect,
-    wallet,
-    address,
-    getSigningCosmWasmClient,
-  } = useChain(process.env.NEXT_PUBLIC_NETWORK!)
-  const [isValidator, setIsValidator] = useState<boolean>(false)
+const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, showTheme, rounded }: IDonationModule) => {
+  const { handleSubmit, register } = useForm<FormValues>();
+  const { openView, wallet, address, getSigningCosmWasmClient } = useChain(process.env.NEXT_PUBLIC_NETWORK!);
+  // const [isValidator, setIsValidator] = useState<boolean>(false);
 
-  const router = useRouter()
-  const { tx } = useTx()
-  const toaster = useToaster()
+  const router = useRouter();
+  const { tx } = useTx();
+  const toaster = useToaster();
 
-  const [isLoading, _] = useState<boolean>(false)
-  const [isOnBehalf, setIsOnBehalf] = useState<boolean>(false)
+  const [isLoading, _] = useState<boolean>(false);
+  const [isOnBehalf, setIsOnBehalf] = useState<boolean>(false);
 
-  const onSubmit: SubmitHandler<FormValues> = async ({
-    donation,
-    on_behalf_of,
-  }) => {
-    const signingCosmWasmClient = await getSigningCosmWasmClient()
+  const onSubmit: SubmitHandler<FormValues> = async ({ donation, on_behalf_of }) => {
+    const signingCosmWasmClient = await getSigningCosmWasmClient();
 
-    if (!signingCosmWasmClient || !address) return
+    if (!signingCosmWasmClient || !address) return;
 
     const fundingMessageComposer = new FundingMessageComposer(
       address,
-      process.env.NEXT_PUBLIC_FUNDING_CONTRACT_ADDRESS!,
-    )
+      process.env.NEXT_PUBLIC_FUNDING_CONTRACT_ADDRESS!
+    );
 
-    const on_behalf_of_address = isOnBehalf ? on_behalf_of : undefined
+    const on_behalf_of_address = isOnBehalf ? on_behalf_of : undefined;
+
+    console.log(`/api/isValidator?address=${isOnBehalf ? (on_behalf_of_address as string) : address}`);
+
+    const isValidator = await fetch(
+      `/api/isValidator?address=${isOnBehalf ? (on_behalf_of_address as string) : address}`
+    )
+      .then((res) => {
+        return res.json();
+      })
+      .then((json) => {
+        console.log(json);
+        return json.isValidator;
+      });
 
     if (!!on_behalf_of_address)
       try {
-        fromBech32(on_behalf_of_address)
+        fromBech32(on_behalf_of_address);
       } catch {
         return toaster.toast({
           title: 'Error',
           dismissable: true,
           message: 'Invalid address',
-          type: ToastTypes.Error,
-        })
+          type: ToastTypes.Error
+        });
       }
 
     const msg = fundingMessageComposer.fund(
       {
-        campaign_name: campaign?.name,
-        donor_address_type: 'Private',
-        on_behalf_of,
+        campaign_name: campaignName,
+        donor_address_type: isValidator ? 'Validator' : 'Private',
+        on_behalf_of
       },
-      [coin(donation * 1_000_000, process.env.NEXT_PUBLIC_DENOM!)],
-    )
+      [coin(donation * 1_000_000, process.env.NEXT_PUBLIC_DENOM!)]
+    );
 
-    tx([msg], {}, () => router.push('/leaderboard'))
-  }
+    tx([msg], {}, () => router.push('/leaderboard'));
+  };
 
   return isLoading ? (
     <Loading />
   ) : (
-    <div
-      className={classNames(
-        rounded && 'rounded-b-lg',
-        'mx-auto h-full max-w-full',
-      )}
-    >
+    <div className={classNames(rounded && 'rounded-b-lg', 'mx-auto h-full max-w-full')}>
       <div className="px-4 pb-8 border-t-4 border-primary">
         <div className="flex flex-row items-center justify-between w-full px-2 pb-3 mt-4">
           <img src="/images/Logo.svg" className="w-8 h-8" />
@@ -228,7 +194,7 @@ const DonationModule = ({
                         'ring-primary',
                         active && checked ? 'ring ring-offset-1' : '',
                         !active && checked ? 'ring-2' : '',
-                        '-m-0.5 relative p-0.5 rounded-full flex items-center justify-center cursor-pointer focus:outline-none',
+                        '-m-0.5 relative p-0.5 rounded-full flex items-center justify-center cursor-pointer focus:outline-none'
                       )
                     }
                   >
@@ -239,7 +205,7 @@ const DonationModule = ({
                       aria-hidden="true"
                       className={classNames(
                         theme.bgColor,
-                        'h-6 w-6 border border-black dark:border-white border-opacity-25 rounded-full',
+                        'h-6 w-6 border border-black dark:border-white border-opacity-25 rounded-full'
                       )}
                     />
                   </RadioGroup.Option>
@@ -249,13 +215,10 @@ const DonationModule = ({
           )}
           <p className="mt-6 text-xs font-semibold text-primary-500">FUND</p>
           <p className="text-3xl font-semibold text-black dark:text-white">
-            <span className="capitalize">
-              {campaign?.name || 'General Fund'}
-            </span>
+            <span className="capitalize">{campaignName || 'General Fund'}</span>
           </p>
           <p className="mt-3 text-sm font-medium text-black dark:text-white">
-            100% of your contribution goes towards the{' '}
-            <span className="capitalize">{campaign?.name || 'SparkIBC'}</span>{' '}
+            100% of your contribution goes towards the <span className="capitalize">{campaignName || 'SparkIBC'}</span>{' '}
             campaign.
           </p>
           <div className="flex flex-row items-center px-4 py-2.5 text-sm font-medium text-black dark:text-white lg:mt-4">
@@ -280,7 +243,7 @@ const DonationModule = ({
                     theme === 'midnight' && 'bg-black text-white',
                     theme === 'dark' && 'bg-gray-900 text-white',
                     theme === 'light' && 'bg-white text-black',
-                    'block w-full font-semibold h-14 pl-6 pr-20 rounded-xl shadow-sm sm:text-base placeholder:text-black/25 dark:placeholder:text-white/25 border-black/10 dark:border-white/25',
+                    'block w-full font-semibold h-14 pl-6 pr-20 rounded-xl shadow-sm sm:text-base placeholder:text-black/25 dark:placeholder:text-white/25 border-black/10 dark:border-white/25'
                   )}
                   id="donation"
                   type="number"
@@ -312,7 +275,7 @@ const DonationModule = ({
                         theme === 'midnight' && 'bg-black text-white',
                         theme === 'dark' && 'bg-gray-900 text-white',
                         theme === 'light' && 'bg-white text-black',
-                        'block w-full font-semibold placeholder:text-sm h-10 pl-6 pr-20 rounded-xl shadow-sm sm:text-base placeholder:text-black/25 dark:placeholder:text-white/25 border-black/10 dark:border-white/25',
+                        'block w-full font-semibold placeholder:text-sm h-10 pl-6 pr-20 rounded-xl shadow-sm sm:text-base placeholder:text-black/25 dark:placeholder:text-white/25 border-black/10 dark:border-white/25'
                       )}
                       id="on_behalf_of"
                       type="text"
@@ -321,10 +284,7 @@ const DonationModule = ({
                       {...register('on_behalf_of', { required: true })}
                     />
                   </div>
-                  <a
-                    className="px-2 cursor-pointer"
-                    onClick={() => setIsOnBehalf(false)}
-                  >
+                  <a className="px-2 cursor-pointer" onClick={() => setIsOnBehalf(false)}>
                     <XMarkIcon className="w-5 h-5 text-primary hover:text-primary/80" />
                   </a>
                 </div>
@@ -367,7 +327,7 @@ const DonationModule = ({
               className="inline-flex items-center justify-center w-full py-5 mt-3 rounded-full"
               variant="primary"
               onClick={() => {
-                if (!wallet) openView()
+                if (!wallet) openView();
               }}
               type={wallet ? 'submit' : 'button'}
             >
@@ -388,5 +348,5 @@ const DonationModule = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
