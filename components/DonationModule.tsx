@@ -168,7 +168,7 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
               target="_blank"
               rel="noopener noreferrer"
               href="https://sparkibc.zone/about"
-              className="flex flex-row items-center space-x-2 text-sm font-medium cursor-pointer text-black/50 dark:text-white/50 hover:text-black/75 dark:hover:text-white/75"
+              className="flex flex-row items-center space-x-2 text-sm font-medium cursor-pointer text-white/50 hover:text-white/75"
             >
               <InformationCircleIcon className="w-5 h-5" />
               <p>About SparkIBC</p>
@@ -203,10 +203,7 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
                     </RadioGroup.Label>
                     <span
                       aria-hidden="true"
-                      className={classNames(
-                        theme.bgColor,
-                        'h-6 w-6 border border-black dark:border-white border-opacity-25 rounded-full'
-                      )}
+                      className={classNames(theme.bgColor, 'h-6 w-6 borderborder-white border-opacity-25 rounded-full')}
                     />
                   </RadioGroup.Option>
                 ))}
@@ -214,15 +211,15 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
             </RadioGroup>
           )}
           <p className="mt-6 text-xs font-semibold text-primary-500">FUND</p>
-          <p className="text-3xl font-semibold text-black dark:text-white">
+          <p className="text-3xl font-semibold text-white">
             <span className="capitalize">{campaignName || 'General Fund'}</span>
           </p>
-          <p className="mt-3 text-sm font-medium text-black dark:text-white">
+          <p className="mt-3 text-sm font-medium text-white">
             100% of your contribution goes towards the <span className="capitalize">{campaignName || 'SparkIBC'}</span>{' '}
             campaign.
           </p>
-          <div className="flex flex-row items-center px-4 py-2.5 text-sm font-medium text-black dark:text-white lg:mt-4">
-            <InformationCircleIcon className="w-5 h-5 mr-3 text-black dark:text-white" />
+          <div className="flex flex-row items-center px-4 py-2.5 text-sm font-medium text-white lg:mt-4">
+            <InformationCircleIcon className="w-5 h-5 mr-3 text-white" />
             <p>
               SparkIBC only supports axlUSDC.{' '}
               <a
@@ -243,7 +240,7 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
                     theme === 'midnight' && 'bg-black text-white',
                     theme === 'dark' && 'bg-gray-900 text-white',
                     theme === 'light' && 'bg-white text-black',
-                    'block w-full font-semibold h-14 pl-6 pr-20 rounded-xl shadow-sm sm:text-base placeholder:text-black/25 dark:placeholder:text-white/25 border-black/10 dark:border-white/25'
+                    'block w-full font-semibold h-14 pl-6 pr-20 rounded-xl shadow-sm sm:text-base placeholder:text-white/25 border-white/25'
                   )}
                   id="donation"
                   type="number"
@@ -254,7 +251,7 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
                 />
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                   <span
-                    className="flex flex-row items-center pr-2 text-sm font-semibold text-black dark:text-white"
+                    className="flex flex-row items-center pr-2 text-sm font-semibold text-white"
                     id="donation-addon"
                   >
                     <img
@@ -275,7 +272,7 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
                         theme === 'midnight' && 'bg-black text-white',
                         theme === 'dark' && 'bg-gray-900 text-white',
                         theme === 'light' && 'bg-white text-black',
-                        'block w-full font-semibold placeholder:text-sm h-10 pl-6 pr-20 rounded-xl shadow-sm sm:text-base placeholder:text-black/25 dark:placeholder:text-white/25 border-black/10 dark:border-white/25'
+                        'block w-full font-semibold placeholder:text-sm h-10 pl-6 pr-20 rounded-xl shadow-sm sm:text-base placeholder:text-white/25 border-white/25'
                       )}
                       id="on_behalf_of"
                       type="text"
@@ -290,7 +287,7 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
                 </div>
               ) : (
                 <Button
-                  className="inline-flex items-center justify-center w-full h-10 py-3 mt-3 font-semibold text-black bg-gray-200 rounded-full hover:bg-gray-300 dark:bg-white dark:hover:bg-white/80"
+                  className="inline-flex items-center justify-center w-full h-10 py-3 mt-3 font-semibold text-black bg-white rounded-full hover:bg-white/80"
                   variant="primary"
                   onClick={() => setIsOnBehalf(true)}
                 >
