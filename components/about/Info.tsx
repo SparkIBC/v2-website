@@ -15,8 +15,8 @@ const INFO_BOXES = [
         </div>
         <div>
           Our <strong>leaderboard</strong> serves to provide some fun competition and customization options, as well as
-          provide a place where you can check on validators & other entities to how much they've contributed to the
-          future of the interchain! Beyond that, we're working to integrate SPARK points into various protocols and
+          provide a place where you can check on validators & other entities to how much they&apos;ve contributed to the
+          future of the interchain! Beyond that, we&apos;re working to integrate SPARK points into various protocols and
           platforms, built by both us and others, to bring contributors fun perks across the interchain.
         </div>
         <div>
@@ -28,8 +28,8 @@ const INFO_BOXES = [
             </li>
             <li>
               Through 3/5 vote from the general fund. This is primarily used to award points to off-chain contributions,
-              such as token allocations from community pools, as we don't feel that market conditions and slippage are
-              within the contributors control in some cases, and hence, shouldn't be penalized.
+              such as token allocations from community pools, as we don&apos;t feel that market conditions and slippage
+              are within the contributors control in some cases, and hence, shouldn&apos;t be penalized.
             </li>
           </ul>
         </div>
@@ -57,9 +57,9 @@ const INFO_BOXES = [
         <div>
           <strong>For projects</strong>
           <p>
-            If you're a chain-agnostic web3 project, Spark Campaigns can be a phenomenal way to kickstart both your
+            If you&apos;re a chain-agnostic web3 project, Spark Campaigns can be a phenomenal way to kickstart both your
             funding, as well as your community & userbase. Finding funding & support for truly multi-chain projects can
-            be difficult, but we don't think it has to be that way.
+            be difficult, but we don&apos;t think it has to be that way.
           </p>
         </div>
         <div>
@@ -78,8 +78,8 @@ const INFO_BOXES = [
           <a href="https://discord.gg/B4d2YTZpnz" target="_blank" rel="noopener noreferrer">
             Discord
           </a>
-          , and check out either the “Brainstorming” or “Campaign Proposals” channels depending on where you're at in
-          your projects life cycle.
+          , and check out either the “Brainstorming” or “Campaign Proposals” channels depending on where you&apos;re at
+          in your projects life cycle.
         </div>
       </>
     )
