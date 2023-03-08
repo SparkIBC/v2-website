@@ -10,7 +10,7 @@ const About = () => {
         <img src="/images/logo_slogan.svg" alt="Spark IBC" />
         <h1 className="text-3xl font-semibold mt-7 md:text-4xl lg:text-5xl">The launchpad the Interchain deserves.</h1>
         <h2 className="text-lg font-medium italic mt-16 md:text-xl">
-          “It’s like a Kickstarter for Cosmos, if Kickstarter didn’t suck...”
+          “It's like a Kickstarter for Cosmos, if Kickstarter didn't suck...”
         </h2>
       </div>
       <div className="mt-20">

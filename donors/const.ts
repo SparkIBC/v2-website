@@ -17,7 +17,7 @@ export const DONORS = [
     campaignDonations: 20000,
     generalDonations: 1439,
     info:
-      'Users who have 50+ SPARK can put a note here or show off badges once we’ve built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
+      'Users who have 50+ SPARK can put a note here or show off badges once we've built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
   },
   {
     rank: 2,
@@ -27,7 +27,7 @@ export const DONORS = [
     campaignDonations: 12020,
     generalDonations: 7300,
     info:
-      'Users who have 50+ SPARK can put a note here or show off badges once we’ve built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
+      'Users who have 50+ SPARK can put a note here or show off badges once we've built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
   },
   {
     rank: 3,
@@ -37,7 +37,7 @@ export const DONORS = [
     campaignDonations: 18120,
     generalDonations: 882,
     info:
-      'Users who have 50+ SPARK can put a note here or show off badges once we’ve built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
+      'Users who have 50+ SPARK can put a note here or show off badges once we've built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
   },
   {
     rank: 4,
@@ -47,7 +47,7 @@ export const DONORS = [
     campaignDonations: 18120,
     generalDonations: 882,
     info:
-      'Users who have 50+ SPARK can put a note here or show off badges once we’ve built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
+      'Users who have 50+ SPARK can put a note here or show off badges once we've built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
   },
   {
     rank: 5,
@@ -57,7 +57,7 @@ export const DONORS = [
     campaignDonations: 18120,
     generalDonations: 882,
     info:
-      'Users who have 50+ SPARK can put a note here or show off badges once we’ve built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
+      'Users who have 50+ SPARK can put a note here or show off badges once we've built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
   },
   {
     rank: 6,
@@ -67,7 +67,7 @@ export const DONORS = [
     campaignDonations: 18120,
     generalDonations: 882,
     info:
-      'Users who have 50+ SPARK can put a note here or show off badges once we’ve built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
+      'Users who have 50+ SPARK can put a note here or show off badges once we've built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
   },
   {
     rank: 7,
@@ -77,7 +77,7 @@ export const DONORS = [
     campaignDonations: 18120,
     generalDonations: 882,
     info:
-      'Users who have 50+ SPARK can put a note here or show off badges once we’ve built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
+      'Users who have 50+ SPARK can put a note here or show off badges once we've built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
   },
   {
     rank: 8,
@@ -87,7 +87,7 @@ export const DONORS = [
     campaignDonations: 18120,
     generalDonations: 882,
     info:
-      'Users who have 50+ SPARK can put a note here or show off badges once we’ve built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
+      'Users who have 50+ SPARK can put a note here or show off badges once we've built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
   },
   {
     rank: 9,
@@ -97,7 +97,7 @@ export const DONORS = [
     campaignDonations: 18120,
     generalDonations: 882,
     info:
-      'Users who have 50+ SPARK can put a note here or show off badges once we’ve built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
+      'Users who have 50+ SPARK can put a note here or show off badges once we've built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
   },
   {
     rank: 10,
@@ -107,7 +107,7 @@ export const DONORS = [
     campaignDonations: 18120,
     generalDonations: 882,
     info:
-      'Users who have 50+ SPARK can put a note here or show off badges once we’ve built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
+      'Users who have 50+ SPARK can put a note here or show off badges once we've built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
   },
   {
     rank: 11,
@@ -117,7 +117,7 @@ export const DONORS = [
     campaignDonations: 18120,
     generalDonations: 882,
     info:
-      'Users who have 50+ SPARK can put a note here or show off badges once we’ve built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
+      'Users who have 50+ SPARK can put a note here or show off badges once we've built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
   },
   {
     rank: 12,
@@ -127,7 +127,7 @@ export const DONORS = [
     campaignDonations: 18120,
     generalDonations: 882,
     info:
-      'Users who have 50+ SPARK can put a note here or show off badges once we’ve built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
+      'Users who have 50+ SPARK can put a note here or show off badges once we've built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
   },
   {
     rank: 13,
@@ -137,7 +137,7 @@ export const DONORS = [
     campaignDonations: 18120,
     generalDonations: 882,
     info:
-      'Users who have 50+ SPARK can put a note here or show off badges once we’ve built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
+      'Users who have 50+ SPARK can put a note here or show off badges once we've built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
   },
   {
     rank: 14,
@@ -147,7 +147,7 @@ export const DONORS = [
     campaignDonations: 18120,
     generalDonations: 882,
     info:
-      'Users who have 50+ SPARK can put a note here or show off badges once we’ve built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
+      'Users who have 50+ SPARK can put a note here or show off badges once we've built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
   },
   {
     rank: 15,
@@ -157,6 +157,6 @@ export const DONORS = [
     campaignDonations: 18120,
     generalDonations: 882,
     info:
-      'Users who have 50+ SPARK can put a note here or show off badges once we’ve built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
+      'Users who have 50+ SPARK can put a note here or show off badges once we've built that out, they can add hyperlinks if they have 100. Validators can use it and link from the onset!'
   }
 ];
