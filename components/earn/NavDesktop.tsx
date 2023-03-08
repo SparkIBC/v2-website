@@ -12,17 +12,17 @@ import TotalRaised from 'components/earn/TotalRaised';
 const shadowBtnActiveClass = 'shadow-[0_0_11px_3px_rgba(255,247,237,0.35)]';
 
 const NavDesktop = () => {
-  const { campaign, setCampaign } = useCampaign();
+  const { campaign, setCampaign, amountRaised } = useCampaign();
   const [menuOffset, setMenuOffset] = useState(0);
 
   return (
     <RadioGroup value={campaign} onChange={setCampaign} className="hidden md:block">
       <div className="flex flex-row justify-between md:p-3 md:pb-0">
-        <RadioGroup.Label className="w-full text-xl leading-4 text-white pb-2 md:border-b md:border-white/50">
+        <RadioGroup.Label className="w-full pb-2 text-xl leading-4 text-white md:border-b md:border-white/50">
           Active Campaigns:
         </RadioGroup.Label>
       </div>
-      <div className="flex overflow-hidden mt-3">
+      <div className="flex mt-3 overflow-hidden">
         {menuOffset > 0 && (
           <button
             className="flex items-center justify-center shrink-0 bg-white/10 border border-spark-orange rounded-lg p-1.5 mt-3 ml-3 mr-3 w-12 h-12"
@@ -31,16 +31,13 @@ const NavDesktop = () => {
             <img src="/images/arrow-double.svg" alt="prev" className="rotate-180" />
           </button>
         )}
-        <div className="flex overflow-x-hidden w-full">
+        <div className="flex w-full overflow-x-hidden">
           <div
-            className="flex grow w-full transition-all duration-300"
+            className="flex w-full transition-all duration-300 grow"
             style={{ transform: `translateX(${-100 * menuOffset}%)` }}
           >
             {campaigns.map((campaignData) => (
-              <div
-                key={campaignData.name}
-                className={cx('basis-1/3 shrink-0 p-3', { ['pr-7']: campaigns.length > 3 })}
-              >
+              <div key={campaignData.name} className={cx('basis-1/3 shrink-0 p-3', { ['pr-7']: campaigns.length > 3 })}>
                 <RadioGroup.Option
                   value={campaignData}
                   className={({ checked }) =>
@@ -57,8 +54,7 @@ const NavDesktop = () => {
                       <RadioGroup.Label
                         as="span"
                         className={cx('flex items-center justify-center w-full h-full', {
-                          'hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-spark-orange-dark to-spark-orange':
-                            !checked
+                          'hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-spark-orange-dark to-spark-orange': !checked
                         })}
                       >
                         {campaignData.name}
@@ -66,9 +62,7 @@ const NavDesktop = () => {
                     </>
                   )}
                 </RadioGroup.Option>
-                {campaignData.name === campaign.name && (
-                  <TotalRaised total={3474} />
-                )}
+                {campaignData.name === campaign.name && amountRaised && <TotalRaised total={amountRaised} />}
               </div>
             ))}
           </div>

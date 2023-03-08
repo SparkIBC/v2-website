@@ -12,17 +12,17 @@ import TotalRaised from 'components/earn/TotalRaised';
 const shadowBtnActiveClass = 'shadow-[0_0_11px_3px_rgba(255,247,237,0.35)]';
 
 const NavMobile = () => {
-  const { campaign, setCampaign } = useCampaign();
+  const { campaign, setCampaign, amountRaised } = useCampaign();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
     <RadioGroup value={campaign} onChange={setCampaign} className="md:hidden">
       <div className="flex flex-row justify-between md:p-3 md:pb-0">
-        <RadioGroup.Label className="w-full text-xl leading-4 text-white pb-2 md:border-b md:border-white/50">
+        <RadioGroup.Label className="w-full pb-2 text-xl leading-4 text-white md:border-b md:border-white/50">
           Active Campaigns:
         </RadioGroup.Label>
       </div>
-      <div className="mt-4 relative">
+      <div className="relative mt-4">
         <div
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           className={`flex items-center justify-center grow bg-spark-orange ${shadowBtnActiveClass} text-spark-gray h-12 transition-all ease-in-out duration-150 ${
@@ -32,7 +32,7 @@ const NavMobile = () => {
           {campaign.name}
           <img src="/images/arrow.svg" alt=">" className={cx('absolute right-4', { 'rotate-90': isDropdownOpen })} />
         </div>
-        <TotalRaised total={3474} />
+        {amountRaised && <TotalRaised total={amountRaised} />}
         <div
           className={cx(
             `bg-spark-lightgray ${shadowBtnActiveClass} overflow-hidden w-full absolute top-12 origin-top transition ease-in-out duration-150`,
