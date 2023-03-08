@@ -53,6 +53,8 @@ const formatDonorField = (donor: IDonor, field: string, isExpanded = false) => {
         <>
           <a
             href={validatorLink?.url}
+            rel="noopener noreferrer"
+            target="_blank"
             className={cx(
               'text-xs md:text-base text-center w-full transition-all duration-300',
               isExpanded ? 'opacity-100 max-h-full' : 'opacity-0 max-h-0'
@@ -62,6 +64,8 @@ const formatDonorField = (donor: IDonor, field: string, isExpanded = false) => {
           </a>
           <a
             href={validatorLink?.url}
+            rel="noopener noreferrer"
+            target="_blank"
             className={cx(
               'hidden text-center whitespace-nowrap text-ellipsis overflow-hidden px-2.5 absolute w-full transition-all duration-300 lg:block',
               isExpanded ? 'opacity-0 invisible' : 'opacity-100 visible'
