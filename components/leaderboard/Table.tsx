@@ -3,29 +3,34 @@ import { useTable, Column, useExpanded, CellProps } from 'react-table';
 import cx from 'classnames';
 
 import { useDonor } from 'contexts/donor';
-import { IDonor } from 'donors/types';
 
 import NameEdit from 'components/leaderboard/NameEdit';
+import { IDonor } from 'types';
+import Loader from 'components/Loader';
+import { useChain, useNameService } from '@cosmos-kit/react';
+import { useTx } from 'contexts/tx';
+import { FundingMessageComposer } from 'types/Funding.message-composer';
+import { CONTRACT_ADDRESS } from 'util/constants';
 
 const formatDonorField = (donor: IDonor, field: string, isExpanded = false) => {
-  const { name, address, info } = donor;
+  const { nickname, address, validatorLink } = donor;
   switch (field) {
     case 'rank':
       return donor.rank;
     case 'name':
       const nameContent =
-        name || `${address.substring(0, 13)}...${address.substring(address.length - 13, address.length)}`;
-      return <div className="whitespace-nowrap text-ellipsis overflow-hidden">{nameContent}</div>;
+        nickname || `${address.substring(0, 13)}...${address.substring(address.length - 13, address.length)}`;
+      return <div className="overflow-hidden whitespace-nowrap text-ellipsis">{nameContent}</div>;
     case 'sparkPoints':
       return (
-        <div className="flex justify-between gap-2 text-sm w-full md:gap-4 md:text-base lg:justify-center">
+        <div className="flex justify-between w-full gap-2 text-sm md:gap-4 md:text-base lg:justify-center">
           <span className={cx('md:block lg:hidden', { hidden: !isExpanded })}>Spark Points</span>
           <span
             className={cx('text-inherit font-normal md:text-spark-lightergray lg:text-inherit lg:font-bold', {
               'text-spark-lightergray lg:text-spark-lightergray lg:font-normal': isExpanded
             })}
           >
-            {donor.sparkPoints.toLocaleString()}
+            {donor.totalSparkPoints.toLocaleString()}
           </span>
         </div>
       );
@@ -46,22 +51,24 @@ const formatDonorField = (donor: IDonor, field: string, isExpanded = false) => {
     case 'info':
       return (
         <>
-          <div
+          <a
+            href={validatorLink?.url}
             className={cx(
               'text-xs md:text-base text-center w-full transition-all duration-300',
               isExpanded ? 'opacity-100 max-h-full' : 'opacity-0 max-h-0'
             )}
           >
-            {info}
-          </div>
-          <div
+            {validatorLink?.label}
+          </a>
+          <a
+            href={validatorLink?.url}
             className={cx(
               'hidden text-center whitespace-nowrap text-ellipsis overflow-hidden px-2.5 absolute w-full transition-all duration-300 lg:block',
               isExpanded ? 'opacity-0 invisible' : 'opacity-100 visible'
             )}
           >
-            {info}
-          </div>
+            {validatorLink?.label}
+          </a>
         </>
       );
     default: // do nothing
@@ -102,11 +109,13 @@ const getTableColumns = (): Array<Column<IDonor>> => [
 ];
 
 const COLUMN_STYLES: { [key: string]: string } = {
-  rank: 'rounded-tl-lg rounded-bl-lg bg-gradient-to-b from-spark-orange-dark to-spark-orange basis-[50px] justify-center shrink-0 font-bold lg:basis-[5%] lg:bg-none lg:font-normal',
-  name: 'flex justify-center basis-[40%] flex justify-start lg:justify-center grow px-2.5 overflow-hidden lg:basis-[20%] lg:grow-0 lg:shrink-0',
+  rank:
+    'rounded-tl-lg rounded-bl-lg bg-gradient-to-b from-spark-orange-dark to-spark-orange basis-[50px] justify-center shrink-0 font-bold lg:basis-[5%] lg:bg-none lg:font-normal',
+  name:
+    'flex justify-center basis-[40%] flex justify-start lg:justify-center grow px-2.5 overflow-hidden lg:basis-[20%] lg:grow-0 lg:shrink-0',
   sparkPoints:
     'shrink-0 font-bold text-transparent bg-clip-text bg-gradient-to-b from-spark-orange-dark to-spark-orange px-2.5 md:basis-[200px] lg:basis-[15%] lg:justify-center lg:px-0',
-  campaignDonations: 'hidden shrink-0  lg:flex basis-[10%] lg:justify-center',
+  campaignDonations: 'hidden shrink-0 lg:flex basis-[10%] lg:justify-center',
   generalDonations: 'hidden shrink-0 lg:flex basis-[10%] lg:justify-center',
   info: 'flex grow px-2.5 overflow-hidden justify-center w-full min-h-0 transition-all duration-300'
 };
@@ -120,6 +129,8 @@ const COLUMN_EXPANDED_STYLES: { [key: string]: string } = {
 };
 
 const Table = () => {
+  const { tx } = useTx();
+
   const { donors, currentDonor } = useDonor();
   const columns = useMemo<Column<IDonor>[]>(getTableColumns, []);
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow, toggleAllRowsExpanded } = useTable(
@@ -147,25 +158,45 @@ const Table = () => {
             >
               <img className="w-[24px]" src="/images/icon_user_edit.svg" alt="edit" />
             </button>
-            <NameEdit isVisible={isEditing} onSave={() => setIsEditing(false)} onCancel={() => setIsEditing(false)} />
+            <NameEdit
+              isVisible={isEditing}
+              onSave={(name) => {
+                const fundingMsgComposer = new FundingMessageComposer(currentDonor?.address, CONTRACT_ADDRESS);
+                const msg = fundingMsgComposer.updateNickname({ nickname: name });
+                tx(
+                  [msg],
+                  {
+                    toast: {
+                      title: 'Nickname changed!'
+                    }
+                  },
+                  () => {
+                    setIsEditing(false);
+                  }
+                );
+              }}
+              onCancel={() => setIsEditing(false)}
+            />
           </>
         );
-      } else if (column.id === 'info' && isCurrentExpanded && currentDonor?.sparkPoints < 50) {
+      } else if (column.id === 'info' && isCurrentExpanded && currentDonor?.totalSparkPoints < 50) {
         return (
-          <div className="flex justify-center items-center w-full h-full">
+          <div className="flex items-center justify-center w-full h-full">
             <img src="/images/icon_lock.svg" alt="locked" />
           </div>
-        )
+        );
+      } else if (column.id === 'rank') {
+        return <p>{currentDonor.rank || ''}</p>;
       } else return formatDonorField(currentDonor, column.id as keyof IDonor, isCurrentExpanded);
     }
   };
 
-  return (
+  return donors.length > 0 ? (
     <div
       {...getTableProps()}
       className="bg-gradient-to-br from-spark-orange-dark to-spark-orange rounded-lg p-[2px] font-outfit font-medium text-spark-lightergray w-full"
     >
-      <div className="flex flex-col bg-spark-gray rounded-lg w-full">
+      <div className="flex flex-col w-full rounded-lg bg-spark-gray">
         {/* HEADER */}
         {headerGroups.map((headerGroup, index) => (
           <div
@@ -275,6 +306,8 @@ const Table = () => {
         </div>
       </div>
     </div>
+  ) : (
+    <Loader size={64} />
   );
 };
 

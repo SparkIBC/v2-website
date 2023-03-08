@@ -1,50 +1,41 @@
-import type { SignerOptions } from '@cosmos-kit/core'
-import { GasPrice, SigningCosmWasmClientOptions } from 'cosmwasm'
-import { WalletProvider as WalletContextProvider } from './WalletContext'
-import { SparkProvider } from 'client'
-import { ChainProvider } from '@cosmos-kit/react'
-import { chains, assets } from 'chain-registry'
+import type { SignerOptions } from '@cosmos-kit/core';
+import { GasPrice, SigningCosmWasmClientOptions } from 'cosmwasm';
+import { WalletProvider as WalletContextProvider } from './WalletContext';
+import { SparkProvider } from 'client';
+import { ChainProvider } from '@cosmos-kit/react';
+import { chains, assets } from 'chain-registry';
 
-import { wallets as KeplrWallet } from '@cosmos-kit/keplr'
-import { wallets as CosmostationWallet } from '@cosmos-kit/cosmostation'
-import { wallets as LeapWallet } from '@cosmos-kit/leap'
+import { wallets as KeplrWallet } from '@cosmos-kit/keplr';
+import { wallets as CosmostationWallet } from '@cosmos-kit/cosmostation';
+import { wallets as LeapWallet } from '@cosmos-kit/leap';
 
 const signerOptions: SignerOptions = {
-  signingCosmwasm: ({
-    chain_name,
-  }): SigningCosmWasmClientOptions | undefined => {
-    let gasTokenName: string | undefined
+  signingCosmwasm: ({ chain_name }): SigningCosmWasmClientOptions | undefined => {
+    let gasTokenName: string | undefined;
     switch (chain_name) {
       case 'juno':
-        gasTokenName = 'ujuno'
-        break
+        gasTokenName = 'ujuno';
+        break;
       case 'junotestnet':
-        gasTokenName = 'ujunox'
-        break
+        gasTokenName = 'ujunox';
+        break;
     }
     // @ts-ignore messed up dependencies
-    return gasTokenName
-      ? { gasPrice: GasPrice.fromString(`0.0025${gasTokenName}`) }
-      : undefined
-  },
-}
+    return gasTokenName ? { gasPrice: GasPrice.fromString(`0.0025${gasTokenName}`) } : undefined;
+  }
+};
 
-export default function WalletProvider({
-  children,
-}: {
-  children: JSX.Element
-}) {
+export default function WalletProvider({ children }: { children: JSX.Element }) {
   return (
     <ChainProvider
       signerOptions={signerOptions}
       chains={chains}
       assetLists={assets}
       wallets={[...KeplrWallet, ...CosmostationWallet, ...LeapWallet]}
-      defaultNameService="stargaze"
     >
       <WalletContextProvider>
         <SparkProvider>{children}</SparkProvider>
       </WalletContextProvider>
     </ChainProvider>
-  )
+  );
 }

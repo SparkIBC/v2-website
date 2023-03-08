@@ -1,25 +1,23 @@
-import {RadioGroup} from '@headlessui/react';
+import { RadioGroup } from '@headlessui/react';
 import cx from 'classnames';
 
-import {DONOR_TYPES} from 'donors/const';
-import {useDonor} from 'contexts/donor';
+import { useDonor } from 'contexts/donor';
+import { AddressType } from 'types';
 
 const shadowBtnActiveClass = 'shadow-[0_0_11px_3px_rgba(255,247,237,0.35)]';
 
 const NavDesktop = () => {
-  const {donorType, setDonorType} = useDonor();
+  const { donorType, setDonorType } = useDonor();
 
   return (
     <div className="hidden md:block">
       <RadioGroup value={donorType} onChange={setDonorType} className="flex flex-col w-full">
-        <RadioGroup.Label className="w-full text-xl leading-4 text-white pb-2 md:border-b md:border-white/50">
+        <RadioGroup.Label className="w-full pb-2 text-xl leading-4 text-white md:border-b md:border-white/50">
           Donor type:
         </RadioGroup.Label>
-        <div className="flex gap-6 mt-6 w-full">
-          {DONOR_TYPES.map(donor => (
-            <div key={donor.id}
-                 className="basis-0 grow last:basis-24 last:grow-0 "
-            >
+        <div className="flex w-full gap-6 mt-6">
+          {Object.keys(AddressType).map((donor) => (
+            <div key={donor} className="basis-0 grow last:basis-24 last:grow-0">
               <RadioGroup.Option
                 value={donor}
                 className={({ checked }) =>
@@ -36,11 +34,10 @@ const NavDesktop = () => {
                     <RadioGroup.Label
                       as="span"
                       className={cx('flex items-center justify-center w-full h-full', {
-                        'hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-spark-orange-dark to-spark-orange':
-                          !checked
+                        'hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-spark-orange-dark to-spark-orange': !checked
                       })}
                     >
-                      {donor.name}
+                      {donor}
                     </RadioGroup.Label>
                   </>
                 )}
@@ -50,7 +47,7 @@ const NavDesktop = () => {
         </div>
       </RadioGroup>
     </div>
-  )
-}
+  );
+};
 
 export default NavDesktop;

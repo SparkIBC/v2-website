@@ -1,25 +1,16 @@
 {
-  "name": "pegasus",
+  "name": "sparkibc",
   "description": "A peer-to-peer NFT trading platform for the Stargaze blockchain.",
-  "author": "Maurits Bos <mb.brains@gmail.com> & Josef Leventon <josef.leventon@gmail.com>",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/pegasuszone/trade.git"
-  },
-  "bugs": {
-    "url": "https://github.com/pegasuszone/trade/issues"
-  },
-  "homepage": "https://pegasus-trade.zone",
+  "author": "Josef Leventon <josef.leventon@gmail.com>",
+  "homepage": "https://sparkibc.zone",
   "license": "ISC",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "yarn prisma:generate && next build",
-    "start": "next start",
-    "prisma:generate": "prisma generate"
+    "build": " next build",
+    "start": "next start"
   },
   "dependencies": {
-    "@apollo/client": "^3.7.5",
     "@chakra-ui/react": "^2.4.9",
     "@cosmjs/encoding": "^0.28.13",
     "@cosmos-kit/core": "^1.0.4",
@@ -29,36 +20,19 @@
     "@cosmos-kit/react": "^1.0.4",
     "@headlessui/react": "^1.6.6",
     "@heroicons/react": "^2.0.7",
-    "@prisma/client": "4.2.0",
-    "@stargazezone/types": "^0.9.0",
-    "@tanstack/react-query": "^4.23.0",
     "animate.css": "^4.1.1",
     "chain-registry": "^1.6.1",
     "classnames": "^2.3.2",
     "copy-to-clipboard": "^3.3.2",
     "cosmjs-types": "^0.5.1",
     "cosmwasm": "^1.1.1",
-    "dirty-json": "^0.9.2",
-    "graphql": "^16.6.0",
-    "lodash": "^4.17.21",
-    "mongoose": "^6.5.3",
-    "nanoid": "^4.0.0",
     "next": "13.1.6",
-    "nextjs-google-analytics": "^2.3.0",
-    "prisma": "4.2.0",
     "react": "18.2.0",
-    "react-countdown": "^2.3.2",
-    "react-device-detect": "^2.2.2",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.43.0",
     "react-hot-toast": "^2.3.0",
-    "react-intersection-observer": "^9.4.1",
     "react-medium-image-zoom": "^5.1.2",
-    "react-table": "^7.8.0",
-    "react-tsparticles": "^2.8.0",
-    "tsparticles": "^2.8.0",
-    "tsparticles-engine": "^2.8.0",
-    "utf-8-validate": "^6.0.2"
+    "react-table": "^7.8.0"
   },
   "devDependencies": {
     "@cosmjs/amino": "^0.28.13",
@@ -67,23 +41,21 @@
     "@tailwindcss/forms": "^0.5.2",
     "@tailwindcss/line-clamp": "^0.4.0",
     "@tailwindcss/typography": "^0.5.4",
-    "@types/mongoose": "^5.11.97",
     "@types/node": "^18.7.13",
     "@types/react": "18.0.9",
     "@types/react-dom": "18.0.5",
     "@types/react-table": "^7.7.14",
     "autoprefixer": "^10.4.7",
     "bufferutil": "^4.0.7",
-    "dotenv-cli": "^6.0.0",
     "eslint": "^8.34.0",
     "eslint-config-next": "^13.1.6",
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "nodemon": "^2.0.19",
     "postcss": "^8.4.14",
     "prettier": "^2.8.4",
     "tailwindcss": "^3.1.2",
     "ts-node": "^10.9.1",
-    "typescript": "^4.8.2"
+    "typescript": "^4.8.2",
+    "utf-8-validate": "^6.0.3"
   }
 }
