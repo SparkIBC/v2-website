@@ -65,9 +65,9 @@ const Nav = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const renderNav = () => (
-    <div className="flex flex-col bg-bg/40 backdrop-blur px-6 w-full h-full lg:bg-bg">
+    <div className="flex flex-col w-full h-full px-6 bg-bg/40 backdrop-blur lg:bg-bg">
       <div className="flex items-center justify-center w-full h-20">
-        <img className="w-40 max-w-full" src="/images/sparkibc_title_light_02.svg" alt="SparkIBC" />
+        <img className="flex-shrink-0 w-40 max-w-full" src="/images/sparkibc_title_light_02.svg" alt="SparkIBC" />
       </div>
       <WalletButton />
       <div className="flex flex-col flex-1 mt-1.5 overflow-y-auto">
@@ -78,7 +78,7 @@ const Nav = () => {
         </nav>
       </div>
       <div className="flex flex-col flex-1 mt-1.5 overflow-y-auto">
-        <p className="font-semibold text-2xl text-white">
+        <p className="text-2xl font-semibold text-white">
           Built by{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-spark-orange-dark to-spark-orange">
             Spark
@@ -97,15 +97,15 @@ const Nav = () => {
     <div>
       {/* DESKTOP NAV */}
       <div className="hidden lg:flex">
-        <div className="w-72 fixed inset-y-0">{renderNav()}</div>
+        <div className="fixed inset-y-0 w-72">{renderNav()}</div>
       </div>
       {/*  MOBILE NAV*/}
       <Transition.Root show={isSidebarOpen} as={Fragment}>
         <Dialog as="div" className="relative z-40 lg:hidden" onClose={() => {}}>
           {/* Overlay */}
-          <div className="bg-transparent fixed inset-0 " onClick={() => setIsSidebarOpen(false)} />
+          <div className="fixed inset-0 bg-transparent " onClick={() => setIsSidebarOpen(false)} />
           {/* Nav items */}
-          <div className="fixed right-0 top-0 bottom-0 z-40 flex">
+          <div className="fixed top-0 bottom-0 right-0 z-40 flex">
             <Transition.Child
               as={Fragment}
               enter="transition ease-in-out duration-300 transform"
@@ -121,7 +121,7 @@ const Nav = () => {
         </Dialog>
       </Transition.Root>
       <button
-        className="flex items-center justify-center bg-bg border border-spark-orange rounded-lg w-12 h-12 fixed bottom-4 right-4 z-50 lg:hidden"
+        className="fixed z-50 flex items-center justify-center w-12 h-12 border rounded-lg bg-bg border-spark-orange bottom-4 right-4 lg:hidden"
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
       >
         <img src={isSidebarOpen ? '/images/icon_close.svg' : '/images/menu.svg'} alt="open menu" />

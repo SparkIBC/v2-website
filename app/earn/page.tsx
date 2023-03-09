@@ -48,7 +48,7 @@ export default function Earn() {
             </div>
           </div>
         </div>
-        <div className="pb-8 pl-12 pt-14">
+        <div className="px-4 pb-8 pt-14">
           <campaign.component />
         </div>
       </div>
