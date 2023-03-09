@@ -41,7 +41,7 @@ const INFO_BOXES = [
     content: (
       <>
         <div>
-          <strong>For users</strong>
+          <strong style={{ fontSize: '1.35rem', marginBottom: '2px' }}>For users</strong>
           <p>
             Campaigns are the primary way users can help support multi-chain efforts and earn Spark Points in the
             process. Spark Campaigns are project or effort specific contribution channels that can run indefinitely or
@@ -55,7 +55,7 @@ const INFO_BOXES = [
           their contribution.
         </div>
         <div>
-          <strong>For projects</strong>
+          <strong style={{ fontSize: '1.35rem', marginBottom: '2px' }}>For projects</strong>
           <p>
             If you&apos;re a chain-agnostic web3 project, Spark Campaigns can be a phenomenal way to kickstart both your
             funding, as well as your community & userbase. Finding funding & support for truly multi-chain projects can
