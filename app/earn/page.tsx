@@ -5,6 +5,7 @@ import { useCampaign } from 'contexts/campaign';
 import NavDesktop from 'components/earn/NavDesktop';
 import NavMobile from 'components/earn/NavMobile';
 import Donate from 'components/DonationModule';
+import Link from 'next/link';
 
 export default function Earn() {
   const { campaign } = useCampaign();
@@ -36,17 +37,25 @@ export default function Earn() {
       </div>
       <div className="w-full relative lg:w-[calc(100%_-_35vw)]">
         <div className="absolute flex justify-center w-full -translate-y-full -top-6">
-          <div
-            className="flex flex-col items-center gap-3 cursor-pointer"
-            onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
-          >
-            <span className="text-xl font-semibold leading-5">Campaign Info</span>
-            <div className="flex justify-center gap-3">
-              <img src="/images/arrow-orange.svg" alt="v" />
-              <img src="/images/arrow-orange.svg" alt="v" />
-              <img src="/images/arrow-orange.svg" alt="v" />
+          {campaign.name === 'General Fund' ? (
+            <div className="flex flex-col items-center cursor-pointer">
+              <Link href="/about" className="text-xl font-semibold leading-5">
+                See <span className="underline">about</span> section for info on general fund
+              </Link>
             </div>
-          </div>
+          ) : (
+            <div
+              className="flex flex-col items-center gap-3 cursor-pointer"
+              onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
+            >
+              <span className="text-xl font-semibold leading-5">Campaign Info</span>
+              <div className="flex justify-center gap-3">
+                <img src="/images/arrow-orange.svg" alt="v" />
+                <img src="/images/arrow-orange.svg" alt="v" />
+                <img src="/images/arrow-orange.svg" alt="v" />
+              </div>
+            </div>
+          )}
         </div>
         <div className="px-4 pb-8 pt-14">
           <campaign.component />
