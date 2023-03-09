@@ -65,7 +65,7 @@ const Nav = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const renderNav = () => (
-    <div className="flex flex-col w-full h-full px-6 bg-bg/40 backdrop-blur lg:bg-bg">
+    <div className="flex flex-col w-full h-full px-6 bg-bg/40 backdrop-blur lg:bg-bg z-[100]">
       <div className="flex items-center justify-center w-full h-20">
         <img className="flex-shrink-0 w-40 max-w-full" src="/images/sparkibc_title_light_02.svg" alt="SparkIBC" />
       </div>
