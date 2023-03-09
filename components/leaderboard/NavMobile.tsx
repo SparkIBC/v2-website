@@ -12,7 +12,7 @@ const NavMobile = () => {
   const { donorType, setDonorType } = useDonor();
 
   return (
-    <RadioGroup value={donorType} onChange={setDonorType} className="z-50 md:hidden">
+    <RadioGroup value={donorType} onChange={setDonorType} className="z-10 md:hidden">
       <div className="flex flex-row justify-between md:p-3 md:pb-0">
         <RadioGroup.Label className="w-full pb-2 text-xl leading-4 text-white md:border-b md:border-white/50">
           Donor Type:

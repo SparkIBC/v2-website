@@ -40,7 +40,7 @@ export default function Earn() {
           {campaign.name === 'General Fund' ? (
             <div className="flex flex-col items-center cursor-pointer">
               <Link href="/about" className="text-xl font-semibold leading-5">
-                See <span className="underline">about</span> section for info on general fund
+                See <span className="underline">about</span> section for info on the General Fund.
               </Link>
             </div>
           ) : (
