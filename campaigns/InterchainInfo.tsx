@@ -40,7 +40,7 @@ export default function Campaign_InterchainInfo() {
       </p>
 
       <Zoom>
-        <img src="/images/ICI_Infographic.png" alt="interchain info infographic" width={768} className="pb-8" />
+        <img src="/images/ICI_Infographic.png" alt="interchain info infographic" className="w-full pb-8" />
       </Zoom>
 
       {/* <GradientDiv className="py-4" /> */}

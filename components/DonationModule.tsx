@@ -11,7 +11,7 @@ import Fieldset from 'components/Fieldset';
 
 import { RadioGroup } from '@headlessui/react';
 import { classNames } from 'util/css';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useChain } from '@cosmos-kit/react';
 import { FundingMessageComposer } from 'types/Funding.message-composer';
 import { coin, fromBech32 } from 'cosmwasm';
