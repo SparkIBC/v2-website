@@ -321,7 +321,7 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
             </Switch.Group>
           </div> */}
             <Button
-              className="inline-flex items-center justify-center w-full py-5 mt-3 rounded-full"
+              className="inline-flex items-center justify-center w-full py-5 mt-3 text-black rounded-full"
               variant="primary"
               onClick={() => {
                 if (!wallet) openView();
