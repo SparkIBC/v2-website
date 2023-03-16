@@ -12,7 +12,7 @@ export default function Earn() {
 
   return (
     <main id="particles" className="w-full">
-      <div className="relative flex flex-col w-full h-screen pt-20 lg:pt-0">
+      <div className="relative flex flex-col w-full min-h-screen pt-20 lg:pt-0">
         <div className="w-full p-5 mt-2 md:p-2">
           <NavDesktop />
           <NavMobile />
