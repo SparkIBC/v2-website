@@ -2,7 +2,6 @@
 
 import WalletProvider from 'client/react/wallet/WalletProvider';
 import { TxProvider } from 'contexts/tx';
-import Head from 'next/head';
 import { ErrorInfo } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { ChakraProvider } from '@chakra-ui/react';
@@ -20,9 +19,6 @@ import Nav from 'components/layout/Nav';
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html>
-      <Head>
-        <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1, user-scalable=no" />
-      </Head>
       <body>
         <Toaster position="top-right" />
         <ChakraProvider theme={defaultTheme}>
