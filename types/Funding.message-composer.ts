@@ -4,10 +4,10 @@
  * and run the @cosmwasm/ts-codegen generate command to regenerate this file.
  */
 
-import { Coin } from '@cosmjs/amino'
-import { MsgExecuteContractEncodeObject } from 'cosmwasm'
-import { MsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx'
-import { toUtf8 } from '@cosmjs/encoding'
+import { Coin } from '@cosmjs/amino';
+import { MsgExecuteContractEncodeObject } from 'cosmwasm';
+import { MsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx';
+import { toUtf8 } from '@cosmjs/encoding';
 import {
   InstantiateMsg,
   ExecuteMsg,
@@ -23,133 +23,133 @@ import {
   GetCampaignResponse,
   Campaign,
   GetDonorResponse,
-  Donor,
-} from './Funding.types'
+  Donor
+} from './Funding.types';
 export interface FundingMessage {
-  contractAddress: string
-  sender: string
+  contractAddress: string;
+  sender: string;
   addCampaign: (
     {
       campaignAddress,
-      campaignName,
+      campaignName
     }: {
-      campaignAddress: string
-      campaignName: string
+      campaignAddress: string;
+      campaignName: string;
     },
-    funds?: Coin[],
-  ) => MsgExecuteContractEncodeObject
+    funds?: Coin[]
+  ) => MsgExecuteContractEncodeObject;
   disableCampaign: (
     {
-      campaignName,
+      campaignName
     }: {
-      campaignName: string
+      campaignName: string;
     },
-    funds?: Coin[],
-  ) => MsgExecuteContractEncodeObject
+    funds?: Coin[]
+  ) => MsgExecuteContractEncodeObject;
   receive: (
     {
       amount,
       msg,
-      sender,
+      sender
     }: {
-      amount: Uint128
-      msg: Binary
-      sender: string
+      amount: Uint128;
+      msg: Binary;
+      sender: string;
     },
-    funds?: Coin[],
-  ) => MsgExecuteContractEncodeObject
+    funds?: Coin[]
+  ) => MsgExecuteContractEncodeObject;
   fund: (
     {
       campaign_name,
       donor_address_type,
-      on_behalf_of,
+      on_behalf_of
     }: {
-      campaign_name?: string
-      donor_address_type: 'Validator' | 'Private'
-      on_behalf_of?: string
+      campaign_name?: string;
+      donor_address_type: 'Validator' | 'Private';
+      on_behalf_of?: string;
     },
-    funds?: Coin[],
-  ) => MsgExecuteContractEncodeObject
+    funds?: Coin[]
+  ) => MsgExecuteContractEncodeObject;
   adminFund: (
     {
       amount,
       fundMsg,
-      to,
+      to
     }: {
-      amount: Uint128
-      fundMsg: FundMsg
-      to: string
+      amount: Uint128;
+      fundMsg: FundMsg;
+      to: string;
     },
-    funds?: Coin[],
-  ) => MsgExecuteContractEncodeObject
+    funds?: Coin[]
+  ) => MsgExecuteContractEncodeObject;
   updateAdmins: (
     {
-      admins,
+      admins
     }: {
-      admins: Addr[]
+      admins: Addr[];
     },
-    funds?: Coin[],
-  ) => MsgExecuteContractEncodeObject
+    funds?: Coin[]
+  ) => MsgExecuteContractEncodeObject;
   updateConfig: (
     {
       blacklistContractAddress,
       cw20DonationTokenAddress,
       generalFundAddress,
       nativeTokenDenom,
-      sparkTokenContractAddress,
+      sparkTokenContractAddress
     }: {
-      blacklistContractAddress?: string
-      cw20DonationTokenAddress?: string
-      generalFundAddress?: string
-      nativeTokenDenom?: string
-      sparkTokenContractAddress?: string
+      blacklistContractAddress?: string;
+      cw20DonationTokenAddress?: string;
+      generalFundAddress?: string;
+      nativeTokenDenom?: string;
+      sparkTokenContractAddress?: string;
     },
-    funds?: Coin[],
-  ) => MsgExecuteContractEncodeObject
+    funds?: Coin[]
+  ) => MsgExecuteContractEncodeObject;
   updateNickname: (
     {
-      nickname,
+      nickname
     }: {
-      nickname?: string
+      nickname?: string;
     },
-    funds?: Coin[],
-  ) => MsgExecuteContractEncodeObject
+    funds?: Coin[]
+  ) => MsgExecuteContractEncodeObject;
   updateValidatorLink: (
     {
-      validatorLink,
+      validatorLink
     }: {
-      validatorLink?: Link
+      validatorLink?: Link;
     },
-    funds?: Coin[],
-  ) => MsgExecuteContractEncodeObject
+    funds?: Coin[]
+  ) => MsgExecuteContractEncodeObject;
 }
 export class FundingMessageComposer implements FundingMessage {
-  sender: string
-  contractAddress: string
+  sender: string;
+  contractAddress: string;
 
   constructor(sender: string, contractAddress: string) {
-    this.sender = sender
-    this.contractAddress = contractAddress
-    this.addCampaign = this.addCampaign.bind(this)
-    this.disableCampaign = this.disableCampaign.bind(this)
-    this.receive = this.receive.bind(this)
-    this.fund = this.fund.bind(this)
-    this.adminFund = this.adminFund.bind(this)
-    this.updateAdmins = this.updateAdmins.bind(this)
-    this.updateConfig = this.updateConfig.bind(this)
-    this.updateNickname = this.updateNickname.bind(this)
-    this.updateValidatorLink = this.updateValidatorLink.bind(this)
+    this.sender = sender;
+    this.contractAddress = contractAddress;
+    this.addCampaign = this.addCampaign.bind(this);
+    this.disableCampaign = this.disableCampaign.bind(this);
+    this.receive = this.receive.bind(this);
+    this.fund = this.fund.bind(this);
+    this.adminFund = this.adminFund.bind(this);
+    this.updateAdmins = this.updateAdmins.bind(this);
+    this.updateConfig = this.updateConfig.bind(this);
+    this.updateNickname = this.updateNickname.bind(this);
+    this.updateValidatorLink = this.updateValidatorLink.bind(this);
   }
 
   addCampaign = (
     {
       campaignAddress,
-      campaignName,
+      campaignName
     }: {
-      campaignAddress: string
-      campaignName: string
+      campaignAddress: string;
+      campaignName: string;
     },
-    funds?: Coin[],
+    funds?: Coin[]
   ): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
@@ -160,21 +160,21 @@ export class FundingMessageComposer implements FundingMessage {
           JSON.stringify({
             add_campaign: {
               campaign_address: campaignAddress,
-              campaign_name: campaignName,
-            },
-          }),
+              campaign_name: campaignName
+            }
+          })
         ),
-        funds,
-      }),
-    }
-  }
+        funds
+      })
+    };
+  };
   disableCampaign = (
     {
-      campaignName,
+      campaignName
     }: {
-      campaignName: string
+      campaignName: string;
     },
-    funds?: Coin[],
+    funds?: Coin[]
   ): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
@@ -184,25 +184,25 @@ export class FundingMessageComposer implements FundingMessage {
         msg: toUtf8(
           JSON.stringify({
             disable_campaign: {
-              campaign_name: campaignName,
-            },
-          }),
+              campaign_name: campaignName
+            }
+          })
         ),
-        funds,
-      }),
-    }
-  }
+        funds
+      })
+    };
+  };
   receive = (
     {
       amount,
       msg,
-      sender,
+      sender
     }: {
-      amount: Uint128
-      msg: Binary
-      sender: string
+      amount: Uint128;
+      msg: Binary;
+      sender: string;
     },
-    funds?: Coin[],
+    funds?: Coin[]
   ): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
@@ -214,40 +214,40 @@ export class FundingMessageComposer implements FundingMessage {
             receive: {
               amount,
               msg,
-              sender,
-            },
-          }),
+              sender
+            }
+          })
         ),
-        funds,
-      }),
-    }
-  }
+        funds
+      })
+    };
+  };
   fund = (
     {
       campaign_name,
       donor_address_type,
-      on_behalf_of,
+      on_behalf_of
     }: {
-      campaign_name?: string
-      donor_address_type: 'Validator' | 'Private'
-      on_behalf_of?: string
+      campaign_name?: string;
+      donor_address_type: 'Validator' | 'Private' | 'Organization';
+      on_behalf_of?: string;
     },
-    funds?: Coin[],
+    funds?: Coin[]
   ): MsgExecuteContractEncodeObject => {
     const fundMsg = campaign_name
       ? {
           fund_campaign: {
             campaign_name,
             donor_address_type,
-            on_behalf_of: on_behalf_of || null,
-          },
+            on_behalf_of: on_behalf_of || null
+          }
         }
       : {
           fund_general: {
             donor_address_type,
-            on_behalf_of: on_behalf_of || null,
-          },
-        }
+            on_behalf_of: on_behalf_of || null
+          }
+        };
     return {
       typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
       value: MsgExecuteContract.fromPartial({
@@ -255,24 +255,24 @@ export class FundingMessageComposer implements FundingMessage {
         contract: this.contractAddress,
         msg: toUtf8(
           JSON.stringify({
-            fund: fundMsg,
-          }),
+            fund: fundMsg
+          })
         ),
-        funds,
-      }),
-    }
-  }
+        funds
+      })
+    };
+  };
   adminFund = (
     {
       amount,
       fundMsg,
-      to,
+      to
     }: {
-      amount: Uint128
-      fundMsg: FundMsg
-      to: string
+      amount: Uint128;
+      fundMsg: FundMsg;
+      to: string;
     },
-    funds?: Coin[],
+    funds?: Coin[]
   ): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
@@ -284,21 +284,21 @@ export class FundingMessageComposer implements FundingMessage {
             admin_fund: {
               amount,
               fund_msg: fundMsg,
-              to,
-            },
-          }),
+              to
+            }
+          })
         ),
-        funds,
-      }),
-    }
-  }
+        funds
+      })
+    };
+  };
   updateAdmins = (
     {
-      admins,
+      admins
     }: {
-      admins: Addr[]
+      admins: Addr[];
     },
-    funds?: Coin[],
+    funds?: Coin[]
   ): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
@@ -308,29 +308,29 @@ export class FundingMessageComposer implements FundingMessage {
         msg: toUtf8(
           JSON.stringify({
             update_admins: {
-              admins,
-            },
-          }),
+              admins
+            }
+          })
         ),
-        funds,
-      }),
-    }
-  }
+        funds
+      })
+    };
+  };
   updateConfig = (
     {
       blacklistContractAddress,
       cw20DonationTokenAddress,
       generalFundAddress,
       nativeTokenDenom,
-      sparkTokenContractAddress,
+      sparkTokenContractAddress
     }: {
-      blacklistContractAddress?: string
-      cw20DonationTokenAddress?: string
-      generalFundAddress?: string
-      nativeTokenDenom?: string
-      sparkTokenContractAddress?: string
+      blacklistContractAddress?: string;
+      cw20DonationTokenAddress?: string;
+      generalFundAddress?: string;
+      nativeTokenDenom?: string;
+      sparkTokenContractAddress?: string;
     },
-    funds?: Coin[],
+    funds?: Coin[]
   ): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
@@ -344,21 +344,21 @@ export class FundingMessageComposer implements FundingMessage {
               cw20_donation_token_address: cw20DonationTokenAddress,
               general_fund_address: generalFundAddress,
               native_token_denom: nativeTokenDenom,
-              spark_token_contract_address: sparkTokenContractAddress,
-            },
-          }),
+              spark_token_contract_address: sparkTokenContractAddress
+            }
+          })
         ),
-        funds,
-      }),
-    }
-  }
+        funds
+      })
+    };
+  };
   updateNickname = (
     {
-      nickname,
+      nickname
     }: {
-      nickname?: string
+      nickname?: string;
     },
-    funds?: Coin[],
+    funds?: Coin[]
   ): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
@@ -368,21 +368,21 @@ export class FundingMessageComposer implements FundingMessage {
         msg: toUtf8(
           JSON.stringify({
             update_nickname: {
-              nickname,
-            },
-          }),
+              nickname
+            }
+          })
         ),
-        funds,
-      }),
-    }
-  }
+        funds
+      })
+    };
+  };
   updateValidatorLink = (
     {
-      validatorLink,
+      validatorLink
     }: {
-      validatorLink?: Link
+      validatorLink?: Link;
     },
-    funds?: Coin[],
+    funds?: Coin[]
   ): MsgExecuteContractEncodeObject => {
     return {
       typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract',
@@ -392,12 +392,12 @@ export class FundingMessageComposer implements FundingMessage {
         msg: toUtf8(
           JSON.stringify({
             update_validator_link: {
-              validator_link: validatorLink,
-            },
-          }),
+              validator_link: validatorLink
+            }
+          })
         ),
-        funds,
-      }),
-    }
-  }
+        funds
+      })
+    };
+  };
 }

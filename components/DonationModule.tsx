@@ -132,6 +132,17 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
         return json.isValidator;
       });
 
+    const isOrganization = await fetch(
+      `/api/isOrganization?address=${isOnBehalf ? (on_behalf_of_address as string) : address}`
+    )
+      .then((res) => {
+        return res.json();
+      })
+      .then((json) => {
+        console.log(json);
+        return json.isOrganization;
+      });
+
     if (!!on_behalf_of_address)
       try {
         fromBech32(on_behalf_of_address);
@@ -147,7 +158,7 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
     const msg = fundingMessageComposer.fund(
       {
         campaign_name: campaignName,
-        donor_address_type: isValidator ? 'Validator' : 'Private',
+        donor_address_type: isValidator ? 'Validator' : isOrganization ? 'Organization' : 'Private',
         on_behalf_of
       },
       [coin(donation * 1_000_000, process.env.NEXT_PUBLIC_DENOM!)]
