@@ -3,6 +3,7 @@ import { WalletData } from './wallet';
 import { FundingClient, FundingQueryClient } from 'types/Funding.client';
 import { Cw20SparkClient, Cw20SparkQueryClient } from 'types/Cw20Spark.client';
 import { RPC } from 'util/constants';
+import { RangoClient } from 'rango-sdk';
 
 const getCosmWasmClientImport = import('./cosmwasm/getCosmWasmClient');
 
@@ -19,6 +20,8 @@ export class SparkClient {
 
   private _fundingClient: FundingQueryClient | null = null;
   private _cw20Client: Cw20SparkQueryClient | null = null;
+
+  private _rangoClient: RangoClient | null = null;
 
   public fundingContract: string;
   public cw20Contract: string;
@@ -43,6 +46,7 @@ export class SparkClient {
 
     this._fundingClient = new FundingQueryClient(this.cosmWasmClient, this.fundingContract);
     this._cw20Client = new Cw20SparkQueryClient(this.cosmWasmClient, this.cw20Contract);
+    this._rangoClient = new RangoClient(process.env.NEXT_PUBLIC_RANGO_API_KEY!);
   }
 
   public get cosmWasmClient(): CosmWasmClient {
@@ -55,6 +59,10 @@ export class SparkClient {
 
   public get fundingClient(): FundingQueryClient {
     return this._fundingClient as FundingClient;
+  }
+
+  public get rangoClient(): RangoClient {
+    return this._rangoClient as RangoClient;
   }
 
   public get wallet(): WalletData {

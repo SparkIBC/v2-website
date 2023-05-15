@@ -16,6 +16,18 @@ const signerOptions: SignerOptions = {
       case 'juno':
         gasTokenName = 'ujuno';
         break;
+      case 'osmosis':
+        gasTokenName = 'uosmo';
+        break;
+      case 'stargaze':
+        gasTokenName = 'ustars';
+        break;
+      case 'akash':
+        gasTokenName = 'uakt';
+        break;
+      case 'cosmoshub':
+        gasTokenName = 'uatom';
+        break;
       case 'junotestnet':
         gasTokenName = 'ujunox';
         break;

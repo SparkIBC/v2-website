@@ -22,7 +22,7 @@ const Action = ({
   action: (e?: SyntheticEvent<Element | Event, Event>) => void;
   active?: boolean;
 }) => (
-  <a
+  <button
     onClick={action}
     data-tip={name}
     className={classNames(
@@ -31,7 +31,7 @@ const Action = ({
     )}
   >
     {icon}
-  </a>
+  </button>
 );
 
 const Wallet = ({ wallet, handleConnect }: { wallet: WalletData; handleConnect: () => Promise<void> }) => {
