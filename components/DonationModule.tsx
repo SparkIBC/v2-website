@@ -12,7 +12,7 @@ import Fieldset from 'components/Fieldset';
 import { RadioGroup } from '@headlessui/react';
 import { classNames } from 'util/css';
 import React, { useMemo, useState } from 'react';
-import { useChain } from '@cosmos-kit/react';
+import { useChain, useWalletClient } from '@cosmos-kit/react';
 import { FundingMessageComposer } from 'types/Funding.message-composer';
 import { coin, fromBech32 } from 'cosmwasm';
 import { useSparkClient } from 'client';
@@ -20,12 +20,14 @@ import { useTx } from 'contexts/tx';
 import { XMarkIcon } from '@heroicons/react/20/solid';
 import useToaster, { ToastTypes } from 'hooks/useToaster';
 import { useCampaign } from 'contexts/campaign';
+import Guard from '@swiftprotocol/guard';
 
 type Theme = 'light' | 'dark' | 'midnight';
 
 interface FormValues {
   donation: number;
   on_behalf_of?: string;
+  email?: string;
 }
 
 const themes = [
@@ -98,6 +100,7 @@ interface IDonationModule {
 const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, showTheme, rounded }: IDonationModule) => {
   const { handleSubmit, register } = useForm<FormValues>();
   const { openView, wallet, address, getSigningCosmWasmClient } = useChain(process.env.NEXT_PUBLIC_NETWORK!);
+  const { client } = useWalletClient();
   // const [isValidator, setIsValidator] = useState<boolean>(false);
 
   const router = useRouter();
@@ -107,7 +110,7 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
   const [isLoading, _] = useState<boolean>(false);
   const [isOnBehalf, setIsOnBehalf] = useState<boolean>(false);
 
-  const onSubmit: SubmitHandler<FormValues> = async ({ donation, on_behalf_of }) => {
+  const onSubmit: SubmitHandler<FormValues> = async ({ donation, on_behalf_of, email }) => {
     const signingCosmWasmClient = await getSigningCosmWasmClient();
 
     if (!signingCosmWasmClient || !address) return;
@@ -116,6 +119,30 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
       address,
       process.env.NEXT_PUBLIC_FUNDING_CONTRACT_ADDRESS!
     );
+
+    if (email && client) {
+      console.log(client);
+
+      console.log(client.signArbitrary);
+
+      const account = await client.getAccount!('juno-1');
+      const hexPubKey = Buffer.from(account.pubkey.buffer).toString('hex');
+
+      const guard = new Guard({
+        api: process.env.NEXT_PUBLIC_GUARD_API!,
+        chainId: 'juno-1',
+        account: {
+          hexPubKey,
+          address
+        },
+        walletMethods: {
+          signArbitrary: client.signArbitrary!
+        }
+      });
+
+      await guard.put('email', email);
+      await guard.notifyAuthorize('sparkibc');
+    }
 
     const on_behalf_of_address = isOnBehalf ? on_behalf_of : undefined;
 
@@ -164,7 +191,10 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
       [coin(donation * 1_000_000, process.env.NEXT_PUBLIC_DENOM!)]
     );
 
-    tx([msg], {}, () => router.push('/leaderboard'));
+    tx([msg], {}, (hash) => {
+      if (email) fetch(`/api/notify?tx=${hash}`);
+      router.push('/leaderboard');
+    });
   };
 
   return isLoading ? (
@@ -274,6 +304,25 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
                 </div>
               </div>
             </Fieldset>
+            <Fieldset id="email">
+              <div className="flex flex-row items-center mt-3">
+                <div className="relative w-full rounded-md shadow-sm">
+                  <input
+                    className={classNames(
+                      theme === 'midnight' && 'bg-black text-white',
+                      theme === 'dark' && 'bg-gray-900 text-white',
+                      theme === 'light' && 'bg-white text-black',
+                      'block w-full font-semibold placeholder:text-sm h-10 pl-6 pr-20 rounded-xl shadow-sm sm:text-base placeholder:text-white/25 border-white/25'
+                    )}
+                    id="email"
+                    type="email"
+                    placeholder="Your email, to send you a receipt (optional)"
+                    autoFocus
+                    {...register('email', { required: true })}
+                  />
+                </div>
+              </div>
+            </Fieldset>
             <Fieldset id="on_behalf_of">
               {isOnBehalf ? (
                 <div className="flex flex-row items-center mt-3">
@@ -341,6 +390,11 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
             >
               {wallet ? 'Contribute' : 'Connect Wallet'}
             </Button>
+            <p className="max-w-sm mx-auto mt-2 text-xs text-center text-white/75">
+              If you choose to provide an email address, it will be encrypted and stored with Swift Guard. SparkIBC will
+              never have access to your unencrypted email. By providing your email address, you consent to receiving
+              reciepts for your transactions with SparkIBC.
+            </p>
             {/* {wallet && (
               <Button
                 className="inline-flex items-center justify-center w-full py-3 mt-3 font-semibold text-black bg-gray-200 rounded-full hover:bg-gray-300 dark:bg-white dark:hover:bg-white/80"
