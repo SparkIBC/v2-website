@@ -20,7 +20,7 @@
     "@cosmos-kit/react": "^1.3.24",
     "@headlessui/react": "^1.6.6",
     "@heroicons/react": "^2.0.7",
-    "@swiftprotocol/guard": "^0.4.0",
+    "@swiftprotocol/guard": "^0.4.1",
     "animate.css": "^4.1.1",
     "axios": "^1.4.0",
     "chain-registry": "^1.6.1",
