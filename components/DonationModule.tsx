@@ -20,7 +20,7 @@ import { useTx } from 'contexts/tx';
 import { XMarkIcon } from '@heroicons/react/20/solid';
 import useToaster, { ToastTypes } from 'hooks/useToaster';
 import { useCampaign } from 'contexts/campaign';
-import Guard from '@swiftprotocol/guard';
+import Guard, { WalletType } from '@swiftprotocol/guard';
 
 type Theme = 'light' | 'dark' | 'midnight';
 
@@ -100,7 +100,7 @@ interface IDonationModule {
 const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, showTheme, rounded }: IDonationModule) => {
   const { handleSubmit, register } = useForm<FormValues>();
   const { openView, wallet, address, getSigningCosmWasmClient } = useChain(process.env.NEXT_PUBLIC_NETWORK!);
-  const { client } = useWalletClient();
+  const { client, status } = useWalletClient();
   // const [isValidator, setIsValidator] = useState<boolean>(false);
 
   const router = useRouter();
@@ -120,24 +120,20 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
       process.env.NEXT_PUBLIC_FUNDING_CONTRACT_ADDRESS!
     );
 
-    if (email && client) {
+    if (email && wallet) {
       console.log(client);
-
-      console.log(client.signArbitrary);
-
-      const account = await client.getAccount!('juno-1');
-      const hexPubKey = Buffer.from(account.pubkey.buffer).toString('hex');
+      console.log(status);
 
       const guard = new Guard({
-        api: process.env.NEXT_PUBLIC_GUARD_API!,
-        chainId: 'juno-1',
-        account: {
-          hexPubKey,
-          address
-        },
-        walletMethods: {
-          signArbitrary: client.signArbitrary!
-        }
+        wallet: wallet?.name!.split('-')[0]! as WalletType,
+        api: process.env.NEXT_PUBLIC_GUARD_API!
+        // account: {
+        //   hexPubKey,
+        //   address
+        // },
+        // walletMethods: {
+        //   signArbitrary: client.signArbitrary!
+        // }
       });
 
       await guard.put('email', email);

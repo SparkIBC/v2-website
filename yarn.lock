@@ -2387,10 +2387,10 @@
   dependencies:
     tslib "^2.4.0"
 
-"@swiftprotocol/guard@^0.3.4":
-  version "0.3.4"
-  resolved "https://registry.yarnpkg.com/@swiftprotocol/guard/-/guard-0.3.4.tgz#f05aab25872947530aadb1ac05afa99f6378e4d3"
-  integrity sha512-8Y0sCSA2DyZWdorLE3ZzlRcRz05WIjGuz14AlQJaVufNzPPT3MWsc2PHP4p2RiQluSEKqQd/BjkbTyWxNe319w==
+"@swiftprotocol/guard@^0.4.1":
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/@swiftprotocol/guard/-/guard-0.4.1.tgz#15297dcecd8b30e9c8d81db361847f93e747de06"
+  integrity sha512-FnirSS/N7nDeIBqvfzsx5c/nW8AuPInQkmFwrOhyUf0ywon6xa8UPAPIvbGI3kWs/Os+hMFe3lQ936ycI1mTyw==
   dependencies:
     "@keplr-wallet/types" "^0.11.63"
     axios "1.3.4"
