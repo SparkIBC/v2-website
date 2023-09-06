@@ -314,7 +314,7 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
                     type="email"
                     placeholder="Your email, to send you a receipt (optional)"
                     autoFocus
-                    {...register('email', { required: true })}
+                    {...register('email')}
                   />
                 </div>
               </div>
