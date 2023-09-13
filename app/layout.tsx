@@ -12,7 +12,6 @@ import 'styles/globals.css';
 import 'react-medium-image-zoom/dist/styles.css';
 import { CampaignProvider } from 'contexts/campaign';
 import { DonorProvider } from 'contexts/donor';
-
 import { MetaTags } from 'components';
 import Nav from 'components/layout/Nav';
 
