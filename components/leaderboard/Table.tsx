@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
 import { useTable, Column, useExpanded, CellProps } from 'react-table';
 import cx from 'classnames';
 
@@ -132,10 +132,8 @@ const getTableColumns = (): Array<Column<IDonor>> => [
 ];
 
 const COLUMN_STYLES: { [key: string]: string } = {
-  rank:
-    'rounded-tl-lg rounded-bl-lg bg-gradient-to-b from-spark-orange-dark to-spark-orange basis-[50px] justify-center shrink-0 font-bold lg:basis-[5%] lg:bg-none lg:font-normal',
-  name:
-    'flex justify-center basis-[40%] flex justify-start lg:justify-center grow px-2.5 overflow-hidden lg:basis-[20%] lg:grow-0 lg:shrink-0',
+  rank: 'rounded-tl-lg rounded-bl-lg bg-gradient-to-b from-spark-orange-dark to-spark-orange basis-[50px] justify-center shrink-0 font-bold lg:basis-[5%] lg:bg-none lg:font-normal',
+  name: 'flex justify-center basis-[40%] flex justify-start lg:justify-center grow px-2.5 overflow-hidden lg:basis-[20%] lg:grow-0 lg:shrink-0',
   sparkPoints:
     'shrink-0 font-bold text-transparent bg-clip-text bg-gradient-to-b from-spark-orange-dark to-spark-orange px-2.5 md:basis-[200px] lg:basis-[15%] lg:justify-center lg:px-0',
   campaignDonations: 'hidden shrink-0 lg:flex basis-[10%] lg:justify-center',
@@ -270,7 +268,7 @@ const Table = () => {
                   COLUMN_STYLES[column.id]
                 )}
               >
-                {column.render('Header')}
+                {column.render('Header') as ReactNode}
               </div>
             ))}
           </div>
@@ -352,7 +350,7 @@ const Table = () => {
                           }
                         )}
                       >
-                        {cell.render('Cell')}
+                        {cell.render('Cell') as ReactNode}
                       </div>
                     ))}
                   </div>

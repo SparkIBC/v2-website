@@ -155,6 +155,8 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
 
     setIsLoadingButton(true);
 
+    console.log(wallet);
+
     try {
       let broadcastToastId = '';
       broadcastToastId = toaster.toast(

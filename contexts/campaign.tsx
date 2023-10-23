@@ -25,18 +25,24 @@ export function CampaignProvider({ children }: { children: ReactNode }) {
 
     async function effect() {
       if (campaign.name === 'General Fund') {
-        const otherAmountsRaised_Promise = campaigns
-          .filter((campaign) => campaign.name != 'General Fund')
-          .map(async (campaign) => {
-            return await client?.fundingClient
-              .queryGetCampaign({ campaignName: campaign.name })
-              .then((campaignInfo) => {
-                return parseInt(campaignInfo.campaign.total_donations) / 1_000_000;
-              });
-          });
+        let otherAmountsRaised;
+        let substractor = 0;
+        if (campaigns.length > 1) {
+          const otherAmountsRaised_Promise = campaigns
+            .filter((campaign) => campaign.name != 'General Fund')
+            .map(async (campaign) => {
+              return await client?.fundingClient
+                .queryGetCampaign({ campaignName: campaign.name })
+                .then((campaignInfo) => {
+                  return parseInt(campaignInfo.campaign.total_donations) / 1_000_000;
+                });
+            });
 
-        const otherAmountsRaised = await Promise.all(otherAmountsRaised_Promise);
-        const substractor = otherAmountsRaised.reduce((a, b) => +(a || 0) + +(b || 0)) || 0;
+          otherAmountsRaised = await Promise.all(otherAmountsRaised_Promise);
+          substractor = otherAmountsRaised.reduce((a, b) => +(a || 0) + +(b || 0)) || 0;
+        } else {
+          otherAmountsRaised = 0;
+        }
 
         client?.fundingClient.queryTotalDonated().then((totalDonated) => {
           const amount = parseInt(totalDonated) / 1_000_000;

@@ -9,21 +9,21 @@ export interface Campaign {
 }
 
 const campaigns: Campaign[] = [
-  {
-    name: 'Interchain Info',
-    description: 'Making Interchain Exploration Easy',
-    component: Campaign_InterchainInfo
-  },
+  // {
+  //   name: 'Interchain Info',
+  //   description: 'Making Interchain Exploration Easy',
+  //   component: Campaign_InterchainInfo
+  // },
   {
     name: 'General Fund',
     description: 'IBC Community Engagement',
     component: () => <Fragment />
-  },
-  {
-    name: 'Terraspaces Appreciation',
-    description: 'Capturing Discussions in the Cosmos',
-    component: Campaign_TerraspacesAppreciation
   }
+  // {
+  //   name: 'Terraspaces Appreciation',
+  //   description: 'Capturing Discussions in the Cosmos',
+  //   component: Campaign_TerraspacesAppreciation
+  // }
 ];
 
 export default campaigns;
