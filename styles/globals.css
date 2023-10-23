@@ -5,7 +5,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 .grid-trade-custom {
   grid-template-rows: 1fr 1fr 0.1fr;
 }
@@ -19,4 +18,16 @@
 * {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
 }
