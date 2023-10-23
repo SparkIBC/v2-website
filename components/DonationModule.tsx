@@ -310,8 +310,9 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
             [coin(route.amountOut, process.env.NEXT_PUBLIC_DENOM!)]
           );
 
-          tx([msg], {}, () => router.push('/leaderboard'));
-          setStatusText('Processing your donation...');
+          setStatusText('Processing your contribution...');
+          await tx([msg], {}, () => {});
+          alert('Your contribution has been processed on Migaloo.');
           break;
         }
 
