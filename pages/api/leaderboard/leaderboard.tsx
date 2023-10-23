@@ -76,7 +76,7 @@ export async function getTopTokenHolders(type: AddressType) {
     }
   };
 
-  const client = await CosmWasmClient.connect(RPC);
+  const client = await CosmWasmClient.connect('https://juno-rpc.reece.sh:443/');
 
   // get topTokenHolders from contract
   const topTokenHoldersResult = await client.queryContractSmart(CW20_ADDRESS, topTokenHoldersMsg);
@@ -96,7 +96,7 @@ export async function getDonor(address: string) {
     }
   };
 
-  const client = await CosmWasmClient.connect(RPC);
+  const client = await CosmWasmClient.connect('https://juno-rpc.reece.sh:443/');
 
   try {
     const result = await client.queryContractSmart(CONTRACT_ADDRESS, msg);

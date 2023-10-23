@@ -9,23 +9,26 @@ import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import Button from 'components/Button';
 import Fieldset from 'components/Fieldset';
 
+import cx from 'classnames';
+import { GasPrice, SigningStargateClient } from '@cosmjs/stargate';
 import { Menu, RadioGroup, Transition } from '@headlessui/react';
 import { classNames } from 'util/css';
-import React, { Fragment, useMemo, useState } from 'react';
-import { useChain } from '@cosmos-kit/react';
+import React, { Fragment, useEffect, useMemo, useState } from 'react';
+import { useChain, useManager } from '@cosmos-kit/react';
 import { FundingMessageComposer } from 'types/Funding.message-composer';
-import { coin, fromBech32, makeSignDoc, makeStdTx, SigningCosmWasmClient, StdFee, toBech32 } from 'cosmwasm';
-import { useSparkClient } from 'client';
+import { coin, coins, fromBech32, SigningCosmWasmClient, toBase64, toUtf8 } from 'cosmwasm';
+import { useSparkClient, useSwap, useWallet } from 'client';
 import { useTx } from 'contexts/tx';
 import { ChevronDownIcon, XMarkIcon } from '@heroicons/react/20/solid';
 import useToaster, { ToastTypes } from 'hooks/useToaster';
 import { useCampaign } from 'contexts/campaign';
-import tokens, { Token } from 'config/tokens';
-import { CosmosTransaction, RangoClient, TransactionStatus, TransactionType } from 'rango-sdk';
-import { isDeliverTxSuccess } from '@cosmjs/stargate';
-import Long from 'long';
+import { Token, coins as tokens, nativeCoins, strideCoins, osmosisCoins } from 'config/tokens';
 import Spinner from './Spinner';
-import { cosmos } from '@keplr-wallet/cosmos';
+import { getFastestEndpoint } from '@cosmos-kit/core';
+import { chains } from 'chain-registry';
+import { Uint53 } from '@cosmjs/math';
+import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { MsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx';
 
 type Theme = 'light' | 'dark' | 'midnight';
 
@@ -39,6 +42,17 @@ const themes = [
   { name: 'dark', bgColor: 'bg-gray-700' },
   { name: 'midnight', bgColor: 'bg-black' }
 ];
+
+export const calculateFee = (denom: string, gas: number) => {
+  const gasLimit = Math.round(gas * 1.3);
+  const { denom: gasDenom, amount: gasPriceAmount } = GasPrice.fromString(`0.1${denom}`);
+  const amount = gasPriceAmount.multiply(new Uint53(gasLimit)).ceil().toString();
+
+  return {
+    amount: coins(amount, gasDenom),
+    gas: String(gasLimit)
+  };
+};
 
 export interface IDonate {
   amount?: number; // amount to donate
@@ -70,7 +84,7 @@ export default function Donate({ amount, theme: defaultTheme, showAbout, rounded
         showTheme={!!defaultTheme}
       />
     );
-  }, [campaign, amount, theme, setTheme, rounded, showAbout, defaultTheme]);
+  }, [campaign, amount, theme, setTheme, rounded, showAbout, defaultTheme, isLoading]);
 
   return (
     <div
@@ -103,53 +117,32 @@ interface IDonationModule {
 
 const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, showTheme, rounded }: IDonationModule) => {
   const { handleSubmit, register } = useForm<FormValues>();
-  const {
-    openView,
-    wallet,
-    address,
-    getSigningCosmWasmClient,
-    signAmino,
-    connect,
-    getOfflineSignerAmino,
-    isWalletConnected
-  } = useChain(process.env.NEXT_PUBLIC_NETWORK!);
-
-  const {
-    getSigningCosmWasmClient: osmosis_getSigningCosmWasmClient,
-    signAmino: osmosis_signAmino,
-    connect: osmosis_connect,
-    getOfflineSignerAmino: osmosis_getOfflineSignerAmino,
-    isWalletConnected: osmosis_isWalletConnected
-  } = useChain('osmosis');
-  const {
-    getSigningCosmWasmClient: cosmos_getSigningCosmWasmClient,
-    signAmino: cosmos_signAmino,
-    connect: cosmos_connect,
-    getOfflineSignerAmino: cosmos_getOfflineSignerAmino,
-    isWalletConnected: cosmos_isWalletConnected,
-    address: hub_wallet_test
-  } = useChain('cosmoshub');
-  const {
-    getSigningCosmWasmClient: stargaze_getSigningCosmWasmClient,
-    signAmino: stargaze_signAmino,
-    connect: stargaze_connect,
-    getOfflineSignerAmino: stargaze_getOfflineSignerAmino,
-    isWalletConnected: stargaze_isWalletConnected
-  } = useChain('stargaze');
-  const {
-    getSigningCosmWasmClient: akash_getSigningCosmWasmClient,
-    signAmino: akash_signAmino,
-    connect: akash_connect,
-    getOfflineSignerAmino: akash_getOfflineSignerAmino,
-    isWalletConnected: akash_isWalletConnected
-  } = useChain('akash');
+  const { wallet, connect, signingStargateClient } = useWallet();
+  const { getWalletRepo } = useManager();
 
   // const [isValidator, setIsValidator] = useState<boolean>(false);
 
+  const [statusText, setStatusText] = useState<string>();
+
   const [selectedToken, setSelectedToken] = useState<Token>(tokens[0]);
+  const [selectedTokenList, setSelectedTokenList] = useState<'native' | 'osmosis' | 'stride'>('native');
+
+  const tokenList = useMemo(() => {
+    switch (selectedTokenList) {
+      case 'native':
+        return nativeCoins;
+      case 'osmosis':
+        return osmosisCoins;
+      case 'stride':
+        return strideCoins;
+    }
+  }, [selectedTokenList]);
 
   const router = useRouter();
   const { tx } = useTx();
+
+  const { findRoute, generateMsgs, broadcastSwap, fetchStatus } = useSwap();
+
   const toaster = useToaster();
 
   const [isLoading, _] = useState<boolean>(false);
@@ -158,23 +151,12 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
 
   const onSubmit: SubmitHandler<FormValues> = async ({ donation, on_behalf_of }) => {
     if (isLoadingButton) return;
+    if (!signingStargateClient || !wallet) return;
 
-    let donateAmount = donation;
+    setIsLoadingButton(true);
 
-    const signingCosmWasmClient = await getSigningCosmWasmClient();
-    if (!signingCosmWasmClient || !address) return;
-
-    if (!selectedToken.locked) {
-      const rango = new RangoClient(process.env.NEXT_PUBLIC_RANGO_API_KEY!);
-
-      setIsLoadingButton(true);
-
-      const { data: addressObject } = fromBech32(address);
-      const localAddress = toBech32(selectedToken.prefix, addressObject);
-      const osmoAddress = toBech32('osmo', addressObject);
-
+    try {
       let broadcastToastId = '';
-
       broadcastToastId = toaster.toast(
         {
           title: 'Finding swap route...',
@@ -183,385 +165,167 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
         { duration: 999999 }
       );
 
-      const bestRoute = await rango.getBestRoute({
-        amount: String(donation),
-        from: { blockchain: selectedToken.chain, symbol: selectedToken.token, address: null },
-        to: {
-          blockchain: 'OSMOSIS',
-          symbol: 'USDC',
-          address: 'ibc/d189335c6e4a68b513c10ab227bf1c1d38c746766278ba3eeb4fb14124f1d858'
-        },
-        checkPrerequisites: true,
-        transactionTypes: [TransactionType.COSMOS],
-        connectedWallets: [
-          { blockchain: selectedToken.chain, addresses: [localAddress] },
-          { blockchain: 'OSMOSIS', addresses: [osmoAddress] }
-        ],
-        selectedWallets: {
-          [selectedToken.chain]: localAddress,
-          OSMOSIS: osmoAddress
-        }
-      });
+      const route = await findRoute(selectedToken, donation * 1_000_000);
+      const chain = chains.find((chain) => chain.chain_id === selectedToken.chain);
+
+      console.log('[ROUTE]', route);
 
       toaster.dismiss(broadcastToastId);
 
-      console.log(bestRoute);
-
-      if (bestRoute.result?.resultType !== 'OK') {
+      if (!route || !chain) {
         toaster.toast({
           title: 'Error',
           dismissable: true,
           message: 'Could not find swap route. Use USDC instead.',
           type: ToastTypes.Error
         });
+        setIsLoadingButton(false);
         return;
       }
 
-      await handleTx(bestRoute.requestId);
-
-      broadcastToastId = toaster.toast(
-        {
-          title: 'Finding swap route...',
-          type: ToastTypes.Pending
-        },
-        { duration: 999999 }
-      );
-
-      const bestRouteToJuno = await rango.getBestRoute({
-        amount: String(parseFloat(bestRoute.result.outputAmount) - 0.1),
-        from: {
-          blockchain: 'OSMOSIS',
-          symbol: 'USDC',
-          address: 'ibc/d189335c6e4a68b513c10ab227bf1c1d38c746766278ba3eeb4fb14124f1d858'
-        },
-        to: {
-          blockchain: 'JUNO',
-          symbol: 'USDC',
-          address: 'ibc/EAC38D55372F38F1AFD68DF7FE9EF762DCF69F26520643CF3F9D292A738D8034'
-        },
-        checkPrerequisites: true,
-        transactionTypes: [TransactionType.COSMOS],
-        connectedWallets: [
-          { blockchain: 'OSMOSIS', addresses: [osmoAddress] },
-          { blockchain: 'JUNO', addresses: [address] }
-        ],
-        selectedWallets: {
-          OSMOSIS: osmoAddress,
-          JUNO: address
-        }
-      });
-
-      toaster.dismiss(broadcastToastId);
-
-      if (bestRoute.result?.resultType !== 'OK') {
-        toaster.toast({
-          title: 'Error',
-          dismissable: true,
-          message: 'Could not find swap route. Use USDC instead.',
-          type: ToastTypes.Error
-        });
-        return;
-      }
-
-      donateAmount = parseFloat(bestRouteToJuno.result?.outputAmount || '0.1') - 0.1;
-
-      console.log(bestRouteToJuno);
-
-      if (bestRouteToJuno.result?.resultType !== 'OK') {
-        toaster.toast({
-          title: 'Error',
-          dismissable: true,
-          message: 'Could not find swap route. Use USDC instead.',
-          type: ToastTypes.Error
-        });
-        return;
-      }
-
-      await handleTx(bestRouteToJuno.requestId, 1, true);
-
-      async function handleTx(request: string, step: number = 1, feeDouble?: boolean) {
-        const tx = await rango.createTransaction({
-          requestId: request,
-          step,
-          userSettings: { slippage: '1' },
-          validations: { balance: false, fee: false }
-        });
-
-        console.log(tx);
-
-        if (step === 1) {
-          toaster.toast({
-            title: 'Found swap route. Preparing transaction.',
-            dismissable: true,
-            type: ToastTypes.Success
-          });
-        }
-
-        let getChainSpecificSigningCosmWasmClient;
-        let getChainSpecificOfflineSignerAmino;
-        let chainSpecificSignAmino;
-        let chainSpecificConnect;
-        let chainSpecificWalletConnected: boolean = false;
-
-        switch ((tx.transaction as CosmosTransaction).blockChain) {
-          case 'JUNO':
-            getChainSpecificSigningCosmWasmClient = getSigningCosmWasmClient;
-            getChainSpecificOfflineSignerAmino = getOfflineSignerAmino;
-            chainSpecificSignAmino = signAmino;
-            chainSpecificConnect = connect;
-            chainSpecificWalletConnected = isWalletConnected;
-            break;
-          case 'OSMOSIS':
-            getChainSpecificSigningCosmWasmClient = osmosis_getSigningCosmWasmClient;
-            getChainSpecificOfflineSignerAmino = osmosis_getOfflineSignerAmino;
-            chainSpecificSignAmino = osmosis_signAmino;
-            chainSpecificConnect = osmosis_connect;
-            chainSpecificWalletConnected = osmosis_isWalletConnected;
-            break;
-          case 'COSMOS':
-            getChainSpecificSigningCosmWasmClient = cosmos_getSigningCosmWasmClient;
-            getChainSpecificOfflineSignerAmino = cosmos_getOfflineSignerAmino;
-            chainSpecificSignAmino = cosmos_signAmino;
-            chainSpecificConnect = cosmos_connect;
-            chainSpecificWalletConnected = cosmos_isWalletConnected;
-            break;
-          case 'STARGAZE':
-            getChainSpecificSigningCosmWasmClient = stargaze_getSigningCosmWasmClient;
-            getChainSpecificOfflineSignerAmino = stargaze_getOfflineSignerAmino;
-            chainSpecificSignAmino = stargaze_signAmino;
-            chainSpecificConnect = stargaze_connect;
-            chainSpecificWalletConnected = stargaze_isWalletConnected;
-            break;
-          case 'AKASH':
-            getChainSpecificSigningCosmWasmClient = akash_getSigningCosmWasmClient;
-            getChainSpecificOfflineSignerAmino = akash_getOfflineSignerAmino;
-            chainSpecificSignAmino = akash_signAmino;
-            chainSpecificConnect = akash_connect;
-            chainSpecificWalletConnected = akash_isWalletConnected;
-            break;
-        }
-
-        console.log(chainSpecificWalletConnected);
-
-        const chainSpecificSigningCosmWasmClient = await (getChainSpecificSigningCosmWasmClient as typeof getSigningCosmWasmClient)();
-        const chainSpecificOfflineSignerAmino = (getChainSpecificOfflineSignerAmino as typeof getOfflineSignerAmino)();
-
-        const {
-          memo,
-          sequence,
-          account_number,
-          chainId,
-          msgs,
-          fee,
-          signType,
-          rpcUrl
-        } = (tx.transaction as CosmosTransaction).data;
-
-        function manipulateMsg(m: any): any {
-          if (!m.__type) return m;
-          if (m.__type === 'DirectCosmosIBCTransferMessage') {
-            const result = { ...m } as any;
-            if (result.value.timeoutTimestamp)
-              result.value.timeoutTimestamp = Long.fromString(result.value.timeoutTimestamp) as any;
-            if (!!result.value.timeoutHeight?.revisionHeight)
-              result.value.timeoutHeight.revisionHeight = Long.fromString(
-                result.value.timeoutHeight.revisionHeight
-              ) as any;
-            if (!!result.value.timeoutHeight?.revisionNumber)
-              result.value.timeoutHeight.revisionNumber = Long.fromString(
-                result.value.timeoutHeight.revisionNumber
-              ) as any;
-            return result;
-          }
-          return { ...m };
-        }
-
-        const msgsWithoutType = msgs.map((m) => ({
-          ...manipulateMsg(m),
-          __type: undefined
-        }));
-
-        const signDoc = makeSignDoc(
-          msgsWithoutType as any,
-          fee as any,
-          chainId as string,
-          memo || undefined,
-          account_number as number,
-          sequence as string
-        );
-
-        const signResponse = await (chainSpecificSignAmino as typeof signAmino)(
-          (tx.transaction as CosmosTransaction).fromWalletAddress,
-          signDoc,
-          { disableBalanceCheck: true }
-        );
-
-        let signedTx;
-        if ((tx.transaction as CosmosTransaction).data.protoMsgs.length > 0) {
-          signedTx = cosmos.tx.v1beta1.TxRaw.encode({
-            bodyBytes: cosmos.tx.v1beta1.TxBody.encode({
-              messages: (tx.transaction as CosmosTransaction).data.protoMsgs.map((m) => ({
-                type_url: m.type_url,
-                value: new Uint8Array(m.value)
-              })),
-              memo: signResponse.signed.memo
-            }).finish(),
-            authInfoBytes: cosmos.tx.v1beta1.AuthInfo.encode({
-              signerInfos: [
-                {
-                  publicKey: {
-                    type_url: '/cosmos.crypto.secp256k1.PubKey',
-                    value: cosmos.crypto.secp256k1.PubKey.encode({
-                      key: Buffer.from(signResponse.signature.pub_key.value, 'base64')
-                    }).finish()
-                  },
-                  modeInfo: {
-                    single: {
-                      mode: cosmos.tx.signing.v1beta1.SignMode.SIGN_MODE_LEGACY_AMINO_JSON
-                    }
-                  },
-                  sequence: Long.fromString(signResponse.signed.sequence)
-                }
-              ],
-              fee: {
-                amount: signResponse.signed.fee.amount as any[],
-                gasLimit: Long.fromString(
-                  String(
-                    feeDouble ? parseFloat(signResponse.signed.fee.gas) * 2 : parseFloat(signResponse.signed.fee.gas)
-                  )
-                )
+      const msgs = (await generateMsgs(route)).map((msg) => {
+        const messageData = JSON.parse(msg.msg);
+        console.log(messageData);
+        switch (msg.msgTypeURL) {
+          case '/ibc.applications.transfer.v1.MsgTransfer':
+            return {
+              typeUrl: msg.msgTypeURL,
+              value: {
+                sourcePort: messageData.source_port,
+                sourceChannel: messageData.source_channel,
+                token: messageData.token,
+                sender: messageData.sender,
+                receiver: messageData.receiver,
+                timeoutTimestamp: messageData.timeout_timestamp,
+                memo: messageData.memo
               }
-            }).finish(),
-            signatures: [Buffer.from(signResponse.signature.signature, 'base64')]
-          }).finish();
-        } else {
-          signedTx = makeStdTx(signResponse.signed, signResponse.signature);
+            };
+          case '/cosmwasm.wasm.v1.MsgExecuteContract':
+            return {
+              typeUrl: msg.msgTypeURL,
+              value: MsgExecuteContract.fromPartial({
+                sender: messageData.sender,
+                contract: messageData.contract,
+                funds: messageData.funds,
+                msg: toUtf8(JSON.stringify(messageData.msg))
+              })
+            };
+          default:
+            throw new Error('Unknown message type: ' + msg.msgTypeURL);
         }
+      });
 
-        const feeArray = !!fee?.amount[0] ? [{ denom: fee.amount[0].denom, amount: fee?.amount[0].amount }] : [];
+      console.log('[MSGS]', msgs);
 
-        // let signed;
-        // try {
-        //   if (address) {
-        //     signed = await chainSpecificSigningCosmWasmClient?.sign(
-        //       (tx.transaction as CosmosTransaction).fromWalletAddress,
-        //       signedTx,
-        //       { gas: '500000', amount: feeArray },
-        //       ''
-        //     );
-        //   }
-        // } catch (e) {
-        //   toaster.toast({
-        //     title: 'Error',
-        //     dismissable: true,
-        //     message: (e as Error).message as string,
-        //     type: ToastTypes.Error
-        //   });
-        // }
+      const endpoints = chain?.apis?.rpc?.map((endpoint) => endpoint.address);
+      const rpc = await getFastestEndpoint(endpoints as string[], 'rpc');
 
-        let broadcastToastId = '';
+      const repo = getWalletRepo(chain.chain_name);
+      await repo.connect(wallet.name);
+      const localWallet = repo.current;
+      await localWallet?.initOfflineSigner();
 
-        broadcastToastId = toaster.toast(
-          {
-            title: 'Broadcasting transaction...',
-            type: ToastTypes.Pending
-          },
-          { duration: 999999 }
-        );
+      if (!localWallet || !localWallet.offlineSigner || !localWallet.address)
+        throw new Error('Wallet is not connected.');
 
-        let hash: string;
+      const signer = await SigningCosmWasmClient.connectWithSigner(rpc, localWallet.offlineSigner);
+      console.log('[SIGNER]', signer);
+      const gas = await signer.simulate(localWallet.address, msgs, '');
+      console.log('[GAS]', gas);
+      const fee = calculateFee(chain.fees?.fee_tokens[0].denom!, gas);
+      console.log('[FEE]', fee);
 
-        console.log(signedTx);
+      const signed = await signer.sign(localWallet.address, msgs, fee, '');
+      console.log('[SIGNED]', signed);
 
-        await chainSpecificSigningCosmWasmClient.broadcastTx(signedTx as Uint8Array).then((res) => {
-          if (isDeliverTxSuccess(res)) hash = res.transactionHash;
-          else
-            toaster.toast({
-              title: 'Error',
-              message: res.rawLog,
-              type: ToastTypes.Error
+      const encoded = TxRaw.encode(signed).finish();
+      console.log(encoded);
+      const base64Signature = toBase64(encoded);
+
+      console.log(base64Signature);
+
+      const response = await broadcastSwap(chain.chain_id, base64Signature);
+
+      const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+      setStatusText('Swapping your tokens...');
+
+      while (true) {
+        const status = await fetchStatus(chain.chain_id, response.txHash);
+        console.log('[STATUS]', status);
+        if (status.status === 'STATE_COMPLETED') {
+          // Continue case...
+          toaster.dismiss(broadcastToastId);
+          const fundingMessageComposer = new FundingMessageComposer(
+            wallet.address,
+            process.env.NEXT_PUBLIC_FUNDING_CONTRACT_ADDRESS!
+          );
+
+          const on_behalf_of_address = isOnBehalf ? on_behalf_of : undefined;
+
+          console.log(`/api/isValidator?address=${isOnBehalf ? (on_behalf_of_address as string) : wallet.address}`);
+
+          const isValidator = await fetch(
+            `/api/isValidator?address=${isOnBehalf ? (on_behalf_of_address as string) : wallet.address}`
+          )
+            .then((res) => {
+              return res.json();
+            })
+            .then((json) => {
+              console.log(json);
+              return json.isValidator;
             });
-        });
 
-        async function checkStatus() {
-          const status = await rango.checkStatus({
-            requestId: request,
-            step,
-            txId: hash
-          });
-          return status;
+          const isOrganization = await fetch(
+            `/api/isOrganization?address=${isOnBehalf ? (on_behalf_of_address as string) : wallet.address}`
+          )
+            .then((res) => {
+              return res.json();
+            })
+            .then((json) => {
+              console.log(json);
+              return json.isOrganization;
+            });
+
+          if (!!on_behalf_of_address)
+            try {
+              fromBech32(on_behalf_of_address);
+            } catch {
+              return toaster.toast({
+                title: 'Error',
+                dismissable: true,
+                message: 'Invalid address',
+                type: ToastTypes.Error
+              });
+            }
+
+          const msg = fundingMessageComposer.fund(
+            {
+              campaign_name: campaignName,
+              donor_address_type: isValidator ? 'Validator' : isOrganization ? 'Organization' : 'Private',
+              on_behalf_of
+            },
+            [coin(route.amountOut, process.env.NEXT_PUBLIC_DENOM!)]
+          );
+
+          tx([msg], {}, () => router.push('/leaderboard'));
+          setStatusText('Processing your donation...');
+          break;
         }
 
-        const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
-
-        while (true) {
-          const { status } = await checkStatus();
-          console.log(status);
-          if (status === TransactionStatus.SUCCESS) {
-            toaster.dismiss(broadcastToastId);
-            if (bestRoute.result?.swaps.length === step) return;
-            await handleTx(request, step + 1);
-            break;
-          } else {
-            await sleep(10000);
-          }
+        if (status.status === 'STATE_RECEIVED') {
+          setStatusText('Tranferring your swapped tokens to Spark...');
+          await sleep(2500);
+          continue;
         }
+
+        await sleep(2500);
       }
+    } catch (e) {
+      setIsLoadingButton(false);
+      console.error(e);
+      throw new Error((e as Error).message);
     }
-
-    const fundingMessageComposer = new FundingMessageComposer(
-      address,
-      process.env.NEXT_PUBLIC_FUNDING_CONTRACT_ADDRESS!
-    );
-
-    const on_behalf_of_address = isOnBehalf ? on_behalf_of : undefined;
-
-    console.log(`/api/isValidator?address=${isOnBehalf ? (on_behalf_of_address as string) : address}`);
-
-    const isValidator = await fetch(
-      `/api/isValidator?address=${isOnBehalf ? (on_behalf_of_address as string) : address}`
-    )
-      .then((res) => {
-        return res.json();
-      })
-      .then((json) => {
-        console.log(json);
-        return json.isValidator;
-      });
-
-    const isOrganization = await fetch(
-      `/api/isOrganization?address=${isOnBehalf ? (on_behalf_of_address as string) : address}`
-    )
-      .then((res) => {
-        return res.json();
-      })
-      .then((json) => {
-        console.log(json);
-        return json.isOrganization;
-      });
-
-    if (!!on_behalf_of_address)
-      try {
-        fromBech32(on_behalf_of_address);
-      } catch {
-        return toaster.toast({
-          title: 'Error',
-          dismissable: true,
-          message: 'Invalid address',
-          type: ToastTypes.Error
-        });
-      }
-
-    const msg = fundingMessageComposer.fund(
-      {
-        campaign_name: campaignName,
-        donor_address_type: isValidator ? 'Validator' : isOrganization ? 'Organization' : 'Private',
-        on_behalf_of
-      },
-      [coin(donateAmount * 1_000_000, process.env.NEXT_PUBLIC_DENOM!)]
-    );
-
-    tx([msg], {}, () => router.push('/leaderboard'));
   };
 
   return isLoading ? (
@@ -629,14 +393,14 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
           <div className="flex flex-row items-center px-4 py-2.5 text-sm font-medium text-white lg:mt-4">
             <InformationCircleIcon className="w-5 h-5 mr-3 text-white" />
             <p>
-              SparkIBC only supports axlUSDC.{' '}
+              SparkIBC is powered by{' '}
               <a
-                href="https://app.rango.exchange/swap/OSMOSIS.OSMO/JUNO.USDC--ibc%2Feac38d55372f38f1afd68df7fe9ef762dcf69f26520643cf3f9d292a738d8034/"
+                href="https://squidrouter.com"
                 rel="noopener noreferrer"
                 target="_blank"
-                className="underline text-primary hover:text-primary/80 hover:decoration-transparent"
+                className="text-primary hover:text-primary/80 hover:underline"
               >
-                Swap
+                Squid Router
               </a>
             </p>
           </div>
@@ -656,6 +420,7 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
                     placeholder="Amount to contribute..."
                     defaultValue={amount}
                     autoFocus
+                    step={0.1}
                     {...register('donation', { required: true, min: 0 })}
                   />
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -678,24 +443,64 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
                   leaveFrom="transform opacity-100 scale-100"
                   leaveTo="transform opacity-0 scale-95"
                 >
-                  <Menu.Items className="absolute right-0 z-10 w-56 mt-2 origin-top-right divide-y rounded-md shadow-lg bg-spark-nav ring-1 ring-black ring-opacity-5 focus:outline-none">
+                  <Menu.Items className="absolute right-0 z-10 mt-2 origin-top-right divide-y rounded-md shadow-lg w-72 bg-spark-nav ring-1 ring-black ring-opacity-5 focus:outline-none">
                     <div className="py-1">
-                      {tokens.map((token) => (
-                        <Menu.Item key={token.token}>
-                          {({ active }) => (
-                            <a
-                              onClick={() => setSelectedToken(token)}
-                              className={classNames(
-                                active ? 'bg-primary-700 text-gray-100' : 'text-gray-300',
-                                'group flex cursor-pointer items-center font-medium px-4 py-2 text-sm'
-                              )}
-                            >
-                              <img src={token.logo} className="w-6 h-6 mr-1.5" aria-hidden="true" />
-                              {token.token}
-                            </a>
-                          )}
-                        </Menu.Item>
-                      ))}
+                      <RadioGroup value={selectedTokenList} onChange={setSelectedTokenList} className="hidden md:block">
+                        <div className="md:p-3 md:pb-0">
+                          <RadioGroup.Label className="sr-only">Select a token type</RadioGroup.Label>
+                        </div>
+                        <div className="flex overflow-hidden">
+                          <div className="flex w-full overflow-x-hidden">
+                            <div className="grid w-full grid-cols-1 gap-2 px-2 md:grid-cols-3">
+                              {['native', 'osmosis', 'stride'].map((type) => (
+                                <div key={type}>
+                                  <RadioGroup.Option
+                                    value={type}
+                                    className={({ checked }) =>
+                                      cx(
+                                        checked ? `bg-spark-orange text-spark-gray h-12` : 'bg-white/10',
+                                        'cursor-pointer rounded-md h-8 transition-all w-full duration-150'
+                                      )
+                                    }
+                                  >
+                                    {({ checked }) => (
+                                      <>
+                                        <RadioGroup.Label
+                                          as="span"
+                                          className={cx('flex items-center text-sm justify-center w-full h-full', {
+                                            'hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-spark-orange-dark to-spark-orange':
+                                              !checked
+                                          })}
+                                        >
+                                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                                        </RadioGroup.Label>
+                                      </>
+                                    )}
+                                  </RadioGroup.Option>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </RadioGroup>
+                      <div className="mt-2 max-h-[28vh] overflow-y-scroll">
+                        {tokenList.map((token) => (
+                          <Menu.Item key={token.token}>
+                            {({ active }) => (
+                              <a
+                                onClick={() => setSelectedToken(token)}
+                                className={classNames(
+                                  active ? 'bg-primary-700 text-gray-100' : 'text-gray-300',
+                                  'group flex cursor-pointer items-center font-medium px-4 py-2 text-sm'
+                                )}
+                              >
+                                <img src={token.logo} className="w-6 h-6 mr-1.5" aria-hidden="true" />
+                                {token.token}
+                              </a>
+                            )}
+                          </Menu.Item>
+                        ))}
+                      </div>
                     </div>
                   </Menu.Items>
                 </Transition>
@@ -762,15 +567,25 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
               className="inline-flex items-center justify-center w-full py-5 mt-3 text-black rounded-full"
               variant="primary"
               onClick={() => {
-                if (!wallet) openView();
+                if (!wallet) connect();
               }}
+              disabled={isLoadingButton}
               type={wallet ? 'submit' : 'button'}
             >
-              {isLoadingButton ? <Spinner className="w-4 h-4 text-white" /> : wallet ? 'Contribute' : 'Connect Wallet'}
+              {isLoadingButton ? (
+                <>
+                  <Spinner className="w-4 h-4 text-white" />
+                  <p className="text-white">{statusText}</p>
+                </>
+              ) : wallet ? (
+                'Contribute'
+              ) : (
+                'Connect Wallet'
+              )}
             </Button>
             {/* {wallet && (
               <Button
-                className="inline-flex items-center justify-center w-full py-3 mt-3 font-semibold text-black bg-gray-200 rounded-full hover:bg-gray-300 dark:bg-white dark:hover:bg-white/80"
+                className="inline-flex items-center justify-center py-3 mt-3 font-semibold text-black bg-gray-200 rounded-full w-f5ull hover:bg-gray-300 dark:bg-white dark:hover:bg-white/80"
                 variant="primary"
                 onClick={() => {
                   disconnect()

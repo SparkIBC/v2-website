@@ -25,7 +25,7 @@ export default function Earn() {
             </div>
           </div>
           <div className="flex justify-center w-full lg:w-[35vw]">
-            <div className="flex justify-center w-[inherit] lg:pt-32 lg:fixed lg:right-0 lg:top-1/2 lg:-translate-y-2/4">
+            <div className="flex justify-center w-[inherit] lg:fixed lg:right-0 lg:top-48">
               <Donate
                 showAbout={false}
                 // campaign={campaign.name === 'General Fund' ? undefined : campaign.name}

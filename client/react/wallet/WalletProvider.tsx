@@ -1,5 +1,6 @@
 import type { SignerOptions } from '@cosmos-kit/core';
-import { GasPrice, SigningCosmWasmClientOptions } from 'cosmwasm';
+import { GasPrice } from 'cosmwasm';
+import { SigningStargateClientOptions } from '@cosmjs/stargate';
 import { WalletProvider as WalletContextProvider } from './WalletContext';
 import { SparkProvider } from 'client';
 import { ChainProvider } from '@cosmos-kit/react';
@@ -8,9 +9,11 @@ import { chains, assets } from 'chain-registry';
 import { wallets as KeplrWallet } from '@cosmos-kit/keplr';
 import { wallets as CosmostationWallet } from '@cosmos-kit/cosmostation';
 import { wallets as LeapWallet } from '@cosmos-kit/leap';
+import { wallets as XdefiWallet } from '@cosmos-kit/xdefi';
+import { wallets as OmniWallet } from '@cosmos-kit/omni';
 
 const signerOptions: SignerOptions = {
-  signingCosmwasm: ({ chain_name }): SigningCosmWasmClientOptions | undefined => {
+  signingStargate: ({ chain_name }): SigningStargateClientOptions | undefined => {
     let gasTokenName: string | undefined;
     switch (chain_name) {
       case 'juno':
@@ -43,7 +46,7 @@ export default function WalletProvider({ children }: { children: JSX.Element }) 
       signerOptions={signerOptions}
       chains={chains}
       assetLists={assets}
-      wallets={[...KeplrWallet, ...CosmostationWallet, ...LeapWallet]}
+      wallets={[...KeplrWallet, ...CosmostationWallet, ...LeapWallet, ...XdefiWallet, ...OmniWallet]}
     >
       <WalletContextProvider>
         <SparkProvider>{children}</SparkProvider>

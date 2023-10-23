@@ -1,12 +1,12 @@
 import { createContext, ReactNode, useContext } from 'react';
 import { TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { isDeliverTxSuccess } from '@cosmjs/stargate';
-import { coins } from '@cosmjs/stargate';
+import { SigningStargateClient, coins } from '@cosmjs/stargate';
 import { ArrowTopRightOnSquareIcon as LinkIcon } from '@heroicons/react/24/outline';
 import useToaster, { ToastPayload, ToastTypes } from 'hooks/useToaster';
 import { useSparkClient, useWallet } from 'client';
-import { useChain } from '@cosmos-kit/react';
-import { SigningCosmWasmClient } from 'cosmwasm';
+import { chains } from 'chain-registry';
+import { fromBech32, SigningCosmWasmClient, toBech32 } from 'cosmwasm';
 
 // Context to handle simple signingClient transactions
 export interface Msg {
@@ -16,7 +16,12 @@ export interface Msg {
 
 export interface TxOptions {
   party?: boolean;
-  gas?: number;
+  gas?: string;
+  gasAmount?: number;
+  gasDenom?: string;
+  memo?: string;
+  signingStargateClient?: SigningStargateClient;
+  signingCosmWasmClient?: SigningCosmWasmClient;
   toast?: {
     title?: ToastPayload['title'];
     message?: ToastPayload['message'];
@@ -26,7 +31,7 @@ export interface TxOptions {
 }
 
 export interface TxContext {
-  tx: (msgs: Msg[], options: TxOptions, callback?: () => void) => Promise<void>;
+  tx: (msgs: Msg[] | TxRaw, options: TxOptions, callback?: (hash: string) => void) => Promise<void>;
 }
 
 export const Tx = createContext<TxContext>({
@@ -36,49 +41,60 @@ export const Tx = createContext<TxContext>({
 export function TxProvider({ children }: { children: ReactNode }) {
   const { wallet, refreshBalance } = useWallet();
   const { client } = useSparkClient();
-  const signingCosmWasmClient = client?.signingCosmWasmClient;
 
   const toaster = useToaster();
 
   // Method to sign & broadcast transaction
-  const tx = async (msgs: Msg[], options: TxOptions, callback?: () => void) => {
+  const tx = async (msgs: Msg[] | TxRaw, options: TxOptions, callback?: (hash: string) => void) => {
+    const signingClient =
+      options.signingStargateClient || options.signingCosmWasmClient || client?.signingCosmWasmClient;
     // Gas config
     const fee = {
-      amount: coins(0, process.env.NEXT_PUBLIC_DEFAULT_GAS_DENOM!),
-      gas: options.gas ? String(options.gas) : process.env.NEXT_PUBLIC_DEFAULT_GAS_FEE!
+      amount: coins(options.gasAmount || 0, options.gasDenom || process.env.NEXT_PUBLIC_DEFAULT_GAS_DENOM!),
+      gas: options.gas || process.env.NEXT_PUBLIC_DEFAULT_GAS_FEE!
     };
 
-    // Broadcast the redelegation message to Keplr
     let signed;
-    try {
-      if (wallet?.address) {
-        signed = await signingCosmWasmClient?.sign(wallet?.address, msgs, fee, '');
-      }
-    } catch (e) {
-      toaster.toast({
-        title: 'Error',
-        dismissable: true,
-        message: (e as Error).message as string,
-        type: ToastTypes.Error
-      });
-    }
-
     let broadcastToastId = '';
 
-    broadcastToastId = toaster.toast(
-      {
-        title: 'Broadcasting transaction...',
-        type: ToastTypes.Pending
-      },
-      { duration: 999999 }
-    );
+    if (msgs instanceof Array) {
+      // Broadcast the redelegation message to Keplr
+      try {
+        if (wallet?.address) {
+          const chainId = await signingClient?.getChainId();
+          const chain = chains.find((chain) => chain.chain_id === chainId);
+          if (!chain) throw new Error('Could not find chain ' + chainId);
 
-    if (signingCosmWasmClient && signed) {
-      await signingCosmWasmClient.broadcastTx(Uint8Array.from(TxRaw.encode(signed).finish())).then((res) => {
+          const localAddress = toBech32(chain.bech32_prefix, fromBech32(wallet.address).data);
+          signed = await signingClient?.sign(localAddress, msgs, fee, options.memo || '');
+        }
+      } catch (e) {
+        toaster.toast({
+          title: 'Error',
+          dismissable: true,
+          message: (e as Error).message as string,
+          type: ToastTypes.Error
+        });
+        throw e;
+      }
+
+      broadcastToastId = toaster.toast(
+        {
+          title: 'Broadcasting transaction...',
+          type: ToastTypes.Pending
+        },
+        { duration: 999999 }
+      );
+    } else {
+      signed = msgs;
+    }
+
+    if (signingClient && signed) {
+      await signingClient.broadcastTx(Uint8Array.from(TxRaw.encode(signed).finish())).then((res: any) => {
         toaster.dismiss(broadcastToastId);
         if (isDeliverTxSuccess(res)) {
           // Run callback
-          if (callback) callback();
+          if (callback) callback(res.transactionHash);
 
           // Refresh balance
           refreshBalance();

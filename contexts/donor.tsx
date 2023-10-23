@@ -2,7 +2,6 @@ import { createContext, ReactNode, useContext, useEffect, useState } from 'react
 
 import { AddressType, IDonor } from 'types';
 import { useSparkClient } from 'client';
-import { useChain } from '@cosmos-kit/react';
 import { convertToIDonor } from 'hooks/donor';
 
 type DonorContext = {
