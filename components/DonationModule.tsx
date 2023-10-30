@@ -398,12 +398,12 @@ const DonationModule = ({ campaignName, amount, theme, setTheme, showAbout, show
             <p>
               SparkIBC is powered by{' '}
               <a
-                href="https://squidrouter.com"
+                href="https://skip.money/"
                 rel="noopener noreferrer"
                 target="_blank"
                 className="text-primary hover:text-primary/80 hover:underline"
               >
-                Squid Router
+                Skip API
               </a>
             </p>
           </div>
